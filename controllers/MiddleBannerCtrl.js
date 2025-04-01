@@ -3,7 +3,7 @@ const MiddleBanner = require("../models/MiddleBanner");
 const getAllMidBan = async (req, res) => {
   try {
     if (req.query.pn) {
-      const paginate = 2;
+      const paginate = 10;
       const pageNumber = req.query.pn;
       const GoalMidBans = await MiddleBanner.find()
         .sort({ _id: -1 })
@@ -96,3 +96,18 @@ const getOneMidBan = async (req, res) => {
   }
 };
 module.exports.getOneMidBan = getOneMidBan;
+
+const getActiveBanners = async (req, res) => {
+  try {
+    const ActiveBanners = await MiddleBanner.find({ situation: true }).select({
+      image: 1,
+      imageAlt: 1,
+      link: 1,
+    });
+    res.status(200).json(ActiveBanners);
+  } catch (err) {
+    console.log(err);
+    res.status(400).json({ msg: "error" });
+  }
+};
+module.exports.getActiveBanners = getActiveBanners;
