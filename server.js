@@ -37,9 +37,11 @@ app.get("/", (req, res) => {
 
 //ROUTES
 const midBanRoutes = require("./routes/MiddleBannerRoutes");
+const postRoutes = require("./routes/PostRoutes");
 
 //ROUTES MIDDLEWARE
 app.use("/api", midBanRoutes);
+app.use("/api", postRoutes);
 
 const PORT = process.env.PORT;
 const DB_URL = process.env.DB_URL;
