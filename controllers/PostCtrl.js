@@ -22,6 +22,17 @@ const getAllPosts = async (req, res) => {
 };
 module.exports.getAllPosts = getAllPosts;
 
+const getRelPosts = async (req, res) => {
+  try {
+    const AllPosts = await Post.find().select({ title: 1 });
+    res.status(200).json(AllPosts);
+  } catch (err) {
+    console.log(err);
+    res.status(400).json({ msg: "error" });
+  }
+};
+module.exports.getRelPosts = getRelPosts;
+
 const newPost = async (req, res) => {
   try {
     await Post.create(req.body);
