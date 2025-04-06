@@ -12,7 +12,7 @@ const getAllPosts = async (req, res) => {
       const AllPostsNum = await (await Post.find()).length;
       res.status(200).json({ GoalPosts, AllPostsNum });
     } else {
-      const AllPosts = await Post.find();
+      const AllPosts = await Post.find().sort({ _id: -1 });
       res.status(200).json(AllPosts);
     }
   } catch (err) {
@@ -35,7 +35,9 @@ module.exports.getRelPosts = getRelPosts;
 
 const newPost = async (req, res) => {
   try {
-    await Post.create(req.body);
+    const data = req.body;
+    data.slug = req.body.slug.replace(/\s+/g, "-").toLowerCase();
+    await Post.create(data);
     res.status(200).json({ msg: "مقاله با موفقیت ذخیره شد." });
   } catch (err) {
     console.log(err);
@@ -46,7 +48,9 @@ module.exports.newPost = newPost;
 
 const updatePost = async (req, res) => {
   try {
-    await Post.findByIdAndUpdate(req.params.id, req.body, {
+    const data = req.body;
+    data.slug = req.body.slug.replace(/\s+/g, "-").toLowerCase();
+    await Post.findByIdAndUpdate(req.params.id, data, {
       new: true,
     });
     res.status(200).json({ msg: "مقاله با موفقیت به روز رسانی شد." });
@@ -86,18 +90,32 @@ const getOnePost = async (req, res) => {
 };
 module.exports.getOnePost = getOnePost;
 
+const getOnePostById = async (req, res) => {
+  try {
+    const goalPost = await Post.findById(req.params.id);
+    res.status(200).json(goalPost);
+  } catch (err) {
+    console.log(err);
+    res.status(400).json({ msg: "error" });
+  }
+};
+module.exports.getOnePostById = getOnePostById;
+
 const getNewPosts = async (req, res) => {
   try {
-    const ActivePost = await Post.find({ situation: true }).select({
-      title: 1,
-      UpdatedAt: 1,
-      slug: 1,
-      image: 1,
-      imageAlt: 1,
-      shortDesc: 1,
-      type: 1,
-      pageView: 1,
-    });
+    const ActivePost = await Post.find({ published: true })
+      .limit(4)
+      .sort({ _id: -1 })
+      .select({
+        title: 1,
+        UpdatedAt: 1,
+        slug: 1,
+        image: 1,
+        imageAlt: 1,
+        shortDesc: 1,
+        type: 1,
+        pageView: 1,
+      });
     res.status(200).json(ActivePost);
   } catch (err) {
     console.log(err);
@@ -105,3 +123,35 @@ const getNewPosts = async (req, res) => {
   }
 };
 module.exports.getNewPosts = getNewPosts;
+
+const getBlogPagePosts = async (req, res) => {
+  try {
+    if (req.query.pn && req.query.pgn) {
+      const paginate = req.query.pgn;
+      const pageNumber = req.query.pn;
+      const GoalPosts = await Post.find({ published: true })
+        .sort({ _id: -1 })
+        .skip((pageNumber - 1) * paginate)
+        .limit(paginate)
+        .select({
+          title: 1,
+          UpdatedAt: 1,
+          slug: 1,
+          image: 1,
+          imageAlt: 1,
+          shortDesc: 1,
+          type: 1,
+          pageView: 1,
+        });
+      const AllPostsNum = await (await Post.find({ published: true })).length;
+      res.status(200).json({ GoalPosts, AllPostsNum });
+    } else {
+      const AllPosts = await Post.find().sort({ _id: -1 });
+      res.status(200).json(AllPosts);
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(400).json({ msg: "error" });
+  }
+};
+module.exports.getBlogPagePosts = getBlogPagePosts;

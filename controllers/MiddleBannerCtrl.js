@@ -12,7 +12,7 @@ const getAllMidBan = async (req, res) => {
       const AllMidBansNum = await (await MiddleBanner.find()).length;
       res.status(200).json({ GoalMidBans, AllMidBansNum });
     } else {
-      const AllMidBans = await MiddleBanner.find();
+      const AllMidBans = await MiddleBanner.find().sort({ _id: -1 });
       res.status(200).json(AllMidBans);
     }
   } catch (err) {
