@@ -155,3 +155,31 @@ const getBlogPagePosts = async (req, res) => {
   }
 };
 module.exports.getBlogPagePosts = getBlogPagePosts;
+
+const getMostViewed = async (req, res) => {
+  try {
+    const GoalPosts = await Post.find({ published: true })
+      .sort({ pageView: -1 })
+      .limit(3)
+      .select({ title: 1, slug: 1 });
+    res.status(200).json(GoalPosts);
+  } catch (err) {
+    console.log(err);
+    res.status(400).json(err);
+  }
+};
+module.exports.getMostViewed = getMostViewed;
+
+// THIS RELATED POSTS IS FOR SINGLE BLOG PAGE
+const getRelatedPosts = async (req, res) => {
+    try {
+        const goalIds = req.body.goalIds;
+        const GoalPosts = await Post.find({ _id: goalIds }).select({ title: 1, UpdatedAt: 1, slug: 1, image: 1, imageAlt: 1, shortDesc: 1, type: 1, pageView: 1 });
+        res.status(200).json(GoalPosts);
+    }
+    catch (err) {
+        console.log(err);
+        res.status(400).json(err);
+    }
+}
+module.exports.getRelatedPosts = getRelatedPosts;

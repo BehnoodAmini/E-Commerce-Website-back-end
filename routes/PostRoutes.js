@@ -12,5 +12,7 @@ router.get("/get-post/:slug", PostCtrl.getOnePost);
 router.get("/get-post-by-id/:id", PostCtrl.getOnePostById);
 router.get("/get-new-posts", PostCtrl.getNewPosts);
 router.get("/get-blog-page-posts", PostCtrl.getBlogPagePosts);
+router.get("/get-most-viewed-posts", PostCtrl.getMostViewed);
+router.post("/get-related-posts", PostCtrl.getRelatedPosts);
 
 module.exports = router;
