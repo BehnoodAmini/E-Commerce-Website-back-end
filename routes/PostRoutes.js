@@ -1,18 +1,43 @@
-const express = require('express');
+const express = require("express");
 const router = express();
+const { check } = require("express-validator");
 
 const PostCtrl = require("../controllers/PostCtrl");
 
 router.get("/posts", PostCtrl.getAllPosts);
+// THIS RELATED POST IS FOR ADD OR UPDATE A BLOG
 router.get("/posts-rel", PostCtrl.getRelPosts);
-router.post("/new-post", PostCtrl.newPost);
-router.post("/update-post/:id", PostCtrl.updatePost);
+router.post(
+  "/new-post",
+  [
+    check("title", "تعداد کاراکتر باید بیشتر از 5 کاراکتر باشد!").isLength({
+      min: 5,
+    }),
+    check("published", "فرمت بخش انتشار اشتباه است!").isBoolean(),
+    check("relatedPosts", "فرمت بخش مقالات مرتبط اشتباه است!").isArray(),
+    check("tags", "فرمت بخش تگ‌ها اشتباه است!").isArray(),
+  ],
+  PostCtrl.newPost
+);
+router.post(
+  "/update-post/:id",
+  [
+    check("title", "تعداد کاراکتر باید بیشتر از 5 کاراکتر باشد!").isLength({
+      min: 5,
+    }),
+    check("published", "فرمت بخش انتشار اشتباه است!").isBoolean(),
+    check("relatedPosts", "فرمت بخش مقالات مرتبط اشتباه است!").isArray(),
+    check("tags", "فرمت بخش تگ‌ها اشتباه است!").isArray(),
+  ],
+  PostCtrl.updatePost
+);
 router.post("/delete-post/:id", PostCtrl.deletePost);
 router.get("/get-post/:slug", PostCtrl.getOnePost);
 router.get("/get-post-by-id/:id", PostCtrl.getOnePostById);
 router.get("/get-new-posts", PostCtrl.getNewPosts);
 router.get("/get-blog-page-posts", PostCtrl.getBlogPagePosts);
 router.get("/get-most-viewed-posts", PostCtrl.getMostViewed);
+// THIS RELATED POSTS IS FOR SINGLE BLOG PAGE
 router.post("/get-related-posts", PostCtrl.getRelatedPosts);
 
 module.exports = router;

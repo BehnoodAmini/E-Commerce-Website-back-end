@@ -1,11 +1,32 @@
-const express = require('express');
+const express = require("express");
 const router = express();
+const { check } = require("express-validator");
 
 const MiddleBannerCtrl = require("../controllers/MiddleBannerCtrl");
 
 router.get("/middle-banners", MiddleBannerCtrl.getAllMidBan);
-router.post("/new-middle-banner", MiddleBannerCtrl.newMidBan);
-router.post("/update-middle-banner/:id", MiddleBannerCtrl.updateMidBan);
+router.post(
+  "/new-middle-banner",
+  [
+    check(
+      "imageAlt",
+      "تعداد کاراکتر آلت تصویر باید بیشتر از 8 کاراکتر باشد!"
+    ).isLength({ min: 8 }),
+    check("situation", "فرمت بخش انتشار اشتباه است!").isBoolean(),
+  ],
+  MiddleBannerCtrl.newMidBan
+);
+router.post(
+  "/update-middle-banner/:id",
+  [
+    check(
+      "imageAlt",
+      "تعداد کاراکتر آلت تصویر باید بیشتر از 8 کاراکتر باشد!"
+    ).isLength({ min: 8 }),
+    check("situation", "فرمت بخش انتشار اشتباه است!").isBoolean(),
+  ],
+  MiddleBannerCtrl.updateMidBan
+);
 router.post("/delete-middle-banner/:id", MiddleBannerCtrl.deleteMidBan);
 router.get("/get-mid-ban/:id", MiddleBannerCtrl.getOneMidBan);
 router.get("/get-active-mid-bans", MiddleBannerCtrl.getActiveBanners);
