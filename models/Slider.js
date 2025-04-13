@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const MiddleBannerSchema = new mongoose.Schema({
+const SliderSchema = new mongoose.Schema({
   image: {
     required: true,
     type: String,
@@ -17,6 +17,11 @@ const MiddleBannerSchema = new mongoose.Schema({
     required: true,
     type: String,
   },
+  sorter: {
+    required: true,
+    type: Number,
+    default: 1,
+  },
   date: {
     type: String,
     default: new Date().toLocaleDateString("fa-IR", {
@@ -25,4 +30,4 @@ const MiddleBannerSchema = new mongoose.Schema({
     }),
   },
 });
-module.exports = mongoose.model("MiddleBanner", MiddleBannerSchema);
+module.exports = mongoose.model("Slider", SliderSchema);
