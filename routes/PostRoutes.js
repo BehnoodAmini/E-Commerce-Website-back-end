@@ -10,7 +10,7 @@ router.get("/posts-rel", PostCtrl.getRelPosts);
 router.post(
   "/new-post",
   [
-    check("title", "تعداد کاراکتر باید بیشتر از 5 کاراکتر باشد!").isLength({
+    check("title", "تعداد کاراکتر عنوان مقاله باید بیشتر از 5 کاراکتر باشد!").isLength({
       min: 5,
     }),
     check("published", "فرمت بخش انتشار اشتباه است!").isBoolean(),
@@ -22,7 +22,7 @@ router.post(
 router.post(
   "/update-post/:id",
   [
-    check("title", "تعداد کاراکتر باید بیشتر از 5 کاراکتر باشد!").isLength({
+    check("title", "تعداد کاراکتر عنوان مقاله باید بیشتر از 5 کاراکتر باشد!").isLength({
       min: 5,
     }),
     check("published", "فرمت بخش انتشار اشتباه است!").isBoolean(),

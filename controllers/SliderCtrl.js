@@ -107,12 +107,13 @@ module.exports.getOneSlider = getOneSlider;
 
 const getActiveSlider = async (req, res) => {
   try {
-    const ActiveSliders = await Slider.find({ situation: true }).select({
-      image: 1,
-      imageAlt: 1,
-      link: 1,
-      sorter: 1,
-    });
+    const ActiveSliders = await Slider.find({ situation: true })
+      .sort({ sorter: 1 })
+      .select({
+        image: 1,
+        imageAlt: 1,
+        link: 1,
+      });
     res.status(200).json(ActiveSliders);
   } catch (err) {
     console.log(err);
