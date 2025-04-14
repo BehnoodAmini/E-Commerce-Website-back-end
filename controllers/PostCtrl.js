@@ -114,14 +114,18 @@ module.exports.deletePost = deletePost;
 const getOnePost = async (req, res) => {
   try {
     const goalPost = await Post.findOne({ slug: req.params.slug });
-    //INCREASE PAGEVIEW BY 1
-    const newPost = {
-      pageView: goalPost.pageView + 1,
-    };
-    await Post.findByIdAndUpdate(goalPost._id, newPost, {
-      new: true,
-    });
-    res.status(200).json(goalPost);
+    if (goalPost.published == true) {
+      //INCREASE PAGEVIEW BY 1
+      const newPost = {
+        pageView: goalPost.pageView + 1,
+      };
+      await Post.findByIdAndUpdate(goalPost._id, newPost, {
+        new: true,
+      });
+      res.status(200).json(goalPost);
+    } else {
+      res.status(400).json({ msg: "مقاله هنوز منتشر نشده است..." });
+    }
   } catch (err) {
     console.log(err);
     res.status(400).json(err);
