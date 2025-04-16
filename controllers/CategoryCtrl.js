@@ -93,7 +93,7 @@ const deleteCategory = async (req, res) => {
 };
 module.exports.deleteCategory = deleteCategory;
 
-const getOnecategory = async (req, res) => {
+const getOneCategory = async (req, res) => {
   try {
     const goalCategory = await Category.findById(req.params.id);
     res.status(200).json(goalCategory);
@@ -102,7 +102,7 @@ const getOnecategory = async (req, res) => {
     res.status(400).json(err);
   }
 };
-module.exports.getOnecategory = getOnecategory;
+module.exports.getOneCategory = getOneCategory;
 
 const getMainPageCategories = async (req, res) => {
   try {
@@ -111,6 +111,7 @@ const getMainPageCategories = async (req, res) => {
       imageAlt: 1,
       slug: 1,
       title: 1,
+      shortDesc: 1,
     });
     res.status(200).json(ActiveCategories);
   } catch (err) {
@@ -120,7 +121,7 @@ const getMainPageCategories = async (req, res) => {
 };
 module.exports.getMainPageCategories = getMainPageCategories;
 
-const getOnePost = async (req, res) => {
+const getOneCategoryBySlug = async (req, res) => {
   try {
     const goalCatrgory = await Post.findOne({ slug: req.params.slug });
     if (goalCatrgory.situation == true) {
@@ -133,4 +134,4 @@ const getOnePost = async (req, res) => {
     res.status(400).json(err);
   }
 };
-module.exports.getOnePost = getOnePost;
+module.exports.getOneCategoryBySlug = getOneCategoryBySlug;

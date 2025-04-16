@@ -10,7 +10,7 @@ router.post(
   [
     check(
       "imageAlt",
-      "تعداد کاراکتر آلت تصویر باید بیشتر از 8 کاراکتر باشد!"
+      "تعداد کاراکتر alt تصویر باید بیشتر از 8 کاراکتر باشد!"
     ).isLength({ min: 8 }),
     check(
       "title",
@@ -25,7 +25,7 @@ router.post(
   [
     check(
       "imageAlt",
-      "تعداد کاراکتر آلت تصویر باید بیشتر از 8 کاراکتر باشد!"
+      "تعداد کاراکتر alt تصویر باید بیشتر از 8 کاراکتر باشد!"
     ).isLength({ min: 8 }),
     check(
       "title",
@@ -36,8 +36,8 @@ router.post(
   CategoryCtrl.updateCategory
 );
 router.post("/delete-category/:id", CategoryCtrl.deleteCategory);
-router.get("/get-category/:id", CategoryCtrl.getOnecategory);
+router.get("/get-category/:id", CategoryCtrl.getOneCategory);
 router.get("/get-active-categories", CategoryCtrl.getMainPageCategories);
-router.get("/get-category/:slug", CategoryCtrl.getOnePost);
+router.get("/get-category/:slug", CategoryCtrl.getOneCategoryBySlug);
 
 module.exports = router;
