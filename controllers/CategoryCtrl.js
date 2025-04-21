@@ -16,6 +16,7 @@ const getAllCategories = async (req, res) => {
           imageAlt: 1,
           title: 1,
           situation: 1,
+          typeOfProduct: 1,
         });
       const AllCategoriesNum = await (await Category.find()).length;
       res.status(200).json({ GoalCategories, AllCategoriesNum });
@@ -112,6 +113,7 @@ const getMainPageCategories = async (req, res) => {
       slug: 1,
       title: 1,
       shortDesc: 1,
+      typeOfProduct: 1,
     });
     res.status(200).json(ActiveCategories);
   } catch (err) {
@@ -123,7 +125,7 @@ module.exports.getMainPageCategories = getMainPageCategories;
 
 const getOneCategoryBySlug = async (req, res) => {
   try {
-    const goalCatrgory = await Post.findOne({ slug: req.params.slug });
+    const goalCatrgory = await Category.findOne({ slug: req.params.slug });
     if (goalCatrgory.situation == true) {
       res.status(200).json(goalCatrgory);
     } else {
