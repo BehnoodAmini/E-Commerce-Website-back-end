@@ -7,6 +7,7 @@ const ProductCtrl = require("../controllers/ProductCtrl");
 router.get("/products", ProductCtrl.getAllProducts);
 // THIS RELATED PRODUCT IS FOR ADD OR UPDATE A PRODUCT
 router.get("/products-rel", ProductCtrl.getRelProducts);
+router.get("/products-categories-rel", ProductCtrl.getRelCategoriesOfProducts);
 router.post(
   "/new-product",
   [

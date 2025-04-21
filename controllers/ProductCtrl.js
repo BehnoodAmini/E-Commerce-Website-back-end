@@ -1,6 +1,7 @@
 const { validationResult } = require("express-validator");
 
 const Product = require("../models/Product");
+const Category = require("../models/Category");
 
 const getAllProducts = async (req, res) => {
   try {
@@ -27,7 +28,7 @@ const getAllProducts = async (req, res) => {
     } else {
       const AllProducts = await Product.find()
         .sort({ _id: -1 })
-        .select({ mainFile: -1 });
+        .select({ mainFile: false });
       res.status(200).json(AllProducts);
     }
   } catch (err) {
@@ -37,7 +38,7 @@ const getAllProducts = async (req, res) => {
 };
 module.exports.getAllProducts = getAllProducts;
 
-// THIS RELATED Product IS FOR ADD OR UPDATE A PRODUCT
+// THIS RELATED PRODUCTS IS FOR ADD OR UPDATE A PRODUCT
 const getRelProducts = async (req, res) => {
   try {
     const AllProducts = await Product.find({ published: true }).select({
@@ -50,6 +51,20 @@ const getRelProducts = async (req, res) => {
   }
 };
 module.exports.getRelProducts = getRelProducts;
+
+// THIS RELATED CATEGORIES IS FOR ADD OR UPDATE A PRODUCT
+const getRelCategoriesOfProducts = async (req, res) => {
+  try {
+    const AllCategories = await Category.find({ situation: true }).select({
+      title: 1,
+    });
+    res.status(200).json(AllCategories);
+  } catch (err) {
+    console.log(err);
+    res.status(400).json(err);
+  }
+};
+module.exports.getRelCategoriesOfProducts = getRelCategoriesOfProducts;
 
 const newProduct = async (req, res) => {
   try {
@@ -121,7 +136,7 @@ module.exports.deleteProduct = deleteProduct;
 const getOneProduct = async (req, res) => {
   try {
     const goalProduct = await Product.findOne({ slug: req.params.slug }).select(
-      { mainFile: -1 }
+      { mainFile: false }
     );
     if (goalProduct.published == true) {
       //INCREASE PAGEVIEW BY 1
