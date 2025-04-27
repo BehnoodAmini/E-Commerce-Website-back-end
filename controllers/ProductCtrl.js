@@ -14,7 +14,7 @@ const getAllProducts = async (req, res) => {
         .limit(paginate)
         .select({
           title: 1,
-          UpdatedAt: 1,
+          updatedAt: 1,
           image: 1,
           imageAlt: 1,
           published: 1,
@@ -262,3 +262,44 @@ const getRelatedProducts = async (req, res) => {
   }
 };
 module.exports.getRelatedProducts = getRelatedProducts;
+
+const getOneTypeProduct = async (req, res) => {
+  try {
+    if (req.query.pn && req.query.pgn) {
+      const paginate = req.query.pgn;
+      const pageNumber = req.query.pn;
+      const GoalProducts = await Product.find({
+        typeOfProduct: req.params.typeOfPro,
+      })
+        .sort({ _id: -1 })
+        .skip((pageNumber - 1) * paginate)
+        .limit(paginate)
+        .select({
+          title: 1,
+          updatedAt: 1,
+          image: 1,
+          imageAlt: 1,
+          published: 1,
+          price: 1,
+          typeOfProduct: 1,
+          buyNumber: 1,
+          pageView: 1,
+        });
+      const AllProductsNum = await (
+        await Product.find({ typeOfProduct: req.params.typeOfPro })
+      ).length;
+      res.status(200).json({ GoalProducts, AllProductsNum });
+    } else {
+      const AllProducts = await Product.find({
+        typeOfProduct: req.params.typeOfPro,
+      })
+        .sort({ _id: -1 })
+        .select({ mainFile: false });
+      res.status(200).json(AllProducts);
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(400).json(err);
+  }
+};
+module.exports.getOneTypeProduct = getOneTypeProduct;

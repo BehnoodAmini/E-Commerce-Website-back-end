@@ -49,5 +49,7 @@ router.get("/get-new-products", ProductCtrl.getNewProducts);
 router.get("/get-most-viewed-products", ProductCtrl.getMostViewedProduct);
 // THIS RELATED productS IS FOR SINGLE PRODUCT PAGE
 router.post("/get-related-products", ProductCtrl.getRelatedProducts);
+// GET PRODUCTS OF A SPECIAL CATEGORY
+router.get("/get-products-of-type/:typeOfPro", ProductCtrl.getOneTypeProduct);
 
 module.exports = router;
