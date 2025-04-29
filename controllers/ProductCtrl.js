@@ -57,6 +57,7 @@ const getRelCategoriesOfProducts = async (req, res) => {
   try {
     const AllCategories = await Category.find({ situation: true }).select({
       title: 1,
+      slug: 1,
     });
     res.status(200).json(AllCategories);
   } catch (err) {
@@ -186,6 +187,7 @@ const getNewProducts = async (req, res) => {
         features: 1,
         pageView: 1,
         buyNumber: 1,
+        categories: 1,
       });
     const NewBooks = await Product.find({
       published: true,
@@ -203,6 +205,7 @@ const getNewProducts = async (req, res) => {
         features: 1,
         pageView: 1,
         buyNumber: 1,
+        categories: 1,
       });
     const NewGFs = await Product.find({ published: true, typeOfProduct: "gr" })
       .limit(8)
@@ -217,6 +220,7 @@ const getNewProducts = async (req, res) => {
         features: 1,
         pageView: 1,
         buyNumber: 1,
+        categories: 1,
       });
     res.status(200).json({ NewApps, NewBooks, NewGFs });
   } catch (err) {
