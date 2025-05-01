@@ -1,6 +1,7 @@
 const { validationResult } = require("express-validator");
 
 const Category = require("../models/Category");
+const Product = require("../models/Product");
 
 const getAllCategories = async (req, res) => {
   try {
@@ -68,6 +69,39 @@ const updateCategory = async (req, res) => {
         req.body.image.endsWith(".jpeg") ||
         req.body.image.endsWith(".webp")
       ) {
+        // UPDATE THIS CATEGORY IN ALL PRODUCTS
+        const theCategory = await Category.findById(req.params.id).select({
+          title: 1,
+          slug: 1,
+        });
+        const allProducts = await Product.find().select({ categories: 1 });
+        for (let i = 0; i < allProducts.length; i++) {
+          for (let j = 0; j < allProducts[i].categories.length; j++) {
+            if (allProducts[i].categories[j]._id == theCategory._id) {
+              let updatedProducCategories = allProducts[i].categories;
+              if (j > -1) {
+                updatedProducCategories.splice(j, 1);
+              }
+              updatedProducCategories = [
+                ...updatedProducCategories,
+                {
+                  _id: req.params.id,
+                  title: req.body.title,
+                  slug: req.body.slug,
+                },
+              ];
+              const updatedProduct = { categories: updatedProducCategories };
+              await Product.findByIdAndUpdate(
+                allProducts[i]._id,
+                updatedProduct,
+                {
+                  new: true,
+                }
+              );
+            }
+          }
+        }
+
         await Category.findByIdAndUpdate(req.params.id, req.body, {
           new: true,
         });
@@ -85,6 +119,27 @@ module.exports.updateCategory = updateCategory;
 
 const deleteCategory = async (req, res) => {
   try {
+    // REMOVE THIS CATEGORY FROM ALL PRODUCTS
+    const theCategory = await Category.findById(req.params.id).select({
+      title: 1,
+      slug: 1,
+    });
+    const allProducts = await Product.find().select({ categories: 1 });
+    for (let i = 0; i < allProducts.length; i++) {
+      for (let j = 0; j < allProducts[i].categories.length; j++) {
+        if (allProducts[i].categories[j]._id == theCategory._id) {
+          let updatedProducCategories = allProducts[i].categories;
+          if (j > -1) {
+            updatedProducCategories.splice(j, 1);
+          }
+          const updatedProduct = { categories: updatedProducCategories };
+          await Product.findByIdAndUpdate(allProducts[i]._id, updatedProduct, {
+            new: true,
+          });
+        }
+      }
+    }
+
     await Category.findByIdAndDelete(req.params.id);
     res.status(200).json({ msg: "دسته بندی با موفقیت حذف شد." });
   } catch (err) {

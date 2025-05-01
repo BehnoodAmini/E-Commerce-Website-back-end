@@ -79,10 +79,16 @@ const newProduct = async (req, res) => {
         req.body.image.endsWith(".jpeg") ||
         req.body.image.endsWith(".webp")
       ) {
-        const data = req.body;
-        data.slug = req.body.slug.replace(/\s+/g, "-").toLowerCase();
-        await Product.create(data);
-        res.status(200).json({ msg: "محصول با موفقیت ذخیره شد." });
+        const theFeatures = req.body.features;
+        const featuresError = theFeatures.filter((fe) => !fe.includes(":"));
+        if (featuresError.length > 0) {
+          res.status(422).json({ msg: "الگوی ویژگی رعایت نشده است!" });
+        } else {
+          const data = req.body;
+          data.slug = req.body.slug.replace(/\s+/g, "-").toLowerCase();
+          await Product.create(data);
+          res.status(200).json({ msg: "محصول با موفقیت ذخیره شد." });
+        }
       } else {
         res.status(422).json({ msg: "فرمت عکس اشتباه است!" });
       }
@@ -106,12 +112,18 @@ const updateProduct = async (req, res) => {
         req.body.image.endsWith(".jpeg") ||
         req.body.image.endsWith(".webp")
       ) {
-        const data = req.body;
-        data.slug = req.body.slug.replace(/\s+/g, "-").toLowerCase();
-        await Product.findByIdAndUpdate(req.params.id, data, {
-          new: true,
-        });
-        res.status(200).json({ msg: "محصول با موفقیت به روز رسانی شد." });
+        const theFeatures = req.body.features;
+        const featuresError = theFeatures.filter((fe) => !fe.includes(":"));
+        if (featuresError.length > 0) {
+          res.status(422).json({ msg: "الگوی ویژگی رعایت نشده است!" });
+        } else {
+          const data = req.body;
+          data.slug = req.body.slug.replace(/\s+/g, "-").toLowerCase();
+          await Product.findByIdAndUpdate(req.params.id, data, {
+            new: true,
+          });
+          res.status(200).json({ msg: "محصول با موفقیت به روز رسانی شد." });
+        }
       } else {
         res.status(422).json({ msg: "فرمت عکس اشتباه است!" });
       }
@@ -184,7 +196,6 @@ const getNewProducts = async (req, res) => {
         imageAlt: 1,
         price: 1,
         typeOfProduct: 1,
-        features: 1,
         pageView: 1,
         buyNumber: 1,
         categories: 1,
@@ -202,7 +213,6 @@ const getNewProducts = async (req, res) => {
         imageAlt: 1,
         price: 1,
         typeOfProduct: 1,
-        features: 1,
         pageView: 1,
         buyNumber: 1,
         categories: 1,
@@ -244,7 +254,7 @@ const getMostViewedProduct = async (req, res) => {
 };
 module.exports.getMostViewedProduct = getMostViewedProduct;
 
-// THIS RELATED ProductS IS FOR SINGLE PRODUCT PAGE
+// THIS RELATED PRODUCTS IS FOR SINGLE PRODUCT PAGE
 const getRelatedProducts = async (req, res) => {
   try {
     const goalIds = req.body.goalIds;
@@ -258,6 +268,7 @@ const getRelatedProducts = async (req, res) => {
       features: 1,
       pageView: 1,
       buyNumber: 1,
+      categories: 1,
     });
     res.status(200).json(GoalProducts);
   } catch (err) {

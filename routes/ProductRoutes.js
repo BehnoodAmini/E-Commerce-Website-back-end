@@ -3,6 +3,7 @@ const router = express();
 const { check } = require("express-validator");
 
 const ProductCtrl = require("../controllers/ProductCtrl");
+const Product = require("../models/Product");
 
 router.get("/products", ProductCtrl.getAllProducts);
 // THIS RELATED PRODUCT IS FOR ADD OR UPDATE A PRODUCT
@@ -22,6 +23,15 @@ router.post(
     check("typeOfProduct", "تعداد کاراکتر بخش تایپ محصول اشتباه است!").isLength(
       { min: 2, max: 4 }
     ),
+    check("slug", "لطفا اسلاگ دیگری انتخاب کنید...").custom((value) => {
+      return Product.find({
+        slug: value,
+      }).then((product) => {
+        if (product.length > 0) {
+          throw "لطفا اسلاگ دیگری انتخاب کنید...!";
+        }
+      });
+    }),
   ],
   ProductCtrl.newProduct
 );
@@ -39,6 +49,15 @@ router.post(
     check("typeOfProduct", "تعداد کاراکتر بخش تایپ محصول اشتباه است!").isLength(
       { min: 2, max: 4 }
     ),
+    check("slug", "لطفا اسلاگ دیگری انتخاب کنید...").custom((value) => {
+      return Product.find({
+        slug: value,
+      }).then((product) => {
+        if (product.length > 1) {
+          throw "لطفا اسلاگ دیگری انتخاب کنید...";
+        }
+      });
+    }),
   ],
   ProductCtrl.updateProduct
 );
