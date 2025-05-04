@@ -318,3 +318,124 @@ const getOneTypeProduct = async (req, res) => {
   }
 };
 module.exports.getOneTypeProduct = getOneTypeProduct;
+
+const SearchProducts = async (req, res) => {
+  try {
+    let allProducts = await Product.find({ published: 1 })
+      .sort({ _id: -1 })
+      .select({
+        title: 1,
+        slug: 1,
+        image: 1,
+        imageAlt: 1,
+        price: 1,
+        typeOfProduct: 1,
+        pageView: 1,
+        buyNumber: 1,
+        categories: 1,
+        features: 1,
+      });
+
+    // KEYWORD SEARCH
+    if (req.query.keyword) {
+      const a = allProducts.filter(
+        (pro) =>
+          pro.title.includes(req.query.keyword) ||
+          pro.imageAlt.includes(req.query.keyword)
+      );
+      allProducts = a;
+    }
+
+    // ORDERBY price, buyNumber, pageView, date
+    if (req.query.orderBy) {
+      let a = [];
+
+      if (req.query.orderBy == "price") {
+        a = allProducts.sort((a, b) =>
+          Number(a.price) > Number(b.price) ? 1 : -1
+        );
+      } else if (req.query.orderBy == "buyNumber") {
+        a = allProducts.sort((a, b) => (a.buyNumber > b.buyNumber ? -1 : 1));
+      } else if (req.query.orderBy == "pageView") {
+        a = allProducts.sort((a, b) => (a.pageView > b.pageView ? -1 : 1));
+      } else {
+        a = allProducts;
+      }
+      allProducts = a;
+    }
+
+    // TYPE OF PRODUCT app, book, gr
+    if (req.query.type) {
+      let a = allProducts.filter((pro) => pro.typeOfProduct == req.query.type);
+      allProducts = a;
+    }
+
+    // MAX PRICE & MIN PRICE
+    if (req.query.maxP && req.query.minP) {
+      const a = allProducts.filter(
+        (pro) =>
+          Number(pro.price) <= req.query.maxP &&
+          Number(pro.price) >= req.query.minP
+      );
+      allProducts = a;
+    }
+
+    // CATEGORIES
+    if (req.query.categories) {
+      const a = [];
+      const categoriesSlug = req.query.categories.split(",");
+
+      for (let i = 0; i < allProducts.length; i++) {
+        for (let j = 0; j < allProducts[i].categories.length; j++) {
+          for (let t = 0; t < categoriesSlug.length; t++) {
+            if (allProducts[i].categories[j].slug == categoriesSlug[t]) {
+              a.push(allProducts[i]);
+            }
+          }
+        }
+      }
+
+      let unique = (item) => [...new Set(item)];
+      allProducts = unique(a);
+
+      allProducts = a;
+    }
+
+    //THIS IS FOR PAGINATION BTNS
+    const productsNumber = allProducts.length;
+    //PAGINATION
+    const paginate = req.query.pgn ? req.query.pgn : 12;
+    const pageNumber = req.query.pn ? req.query.pn : 1;
+    const startNumber = (pageNumber - 1) * paginate;
+    const endNumber = paginate * pageNumber;
+    const a = [];
+    if (paginate >= 0 && pageNumber >= 0) {
+      for (let i = startNumber; i < endNumber; i++) {
+        if (allProducts[i] != null) {
+          a.push(allProducts[i]);
+        }
+      }
+    }
+    allProducts = a;
+
+    const allBtns = Array.from(
+      Array(Math.ceil(productsNumber / paginate)).keys()
+    );
+    const btns = [];
+    for (let i = 0; i < allBtns.length; i++) {
+      if (
+        i == 0 ||
+        i == allBtns.length - 1 ||
+        (i > Number(pageNumber) - 3 && i < Number(pageNumber) + 1)
+      ) {
+        btns.push(i);
+      }
+    }
+
+    res.status(200).json({ allProducts, btns });
+  } catch (err) {
+    console.log(err);
+    res.status(400).json(err);
+  }
+};
+module.exports.SearchProducts = SearchProducts;

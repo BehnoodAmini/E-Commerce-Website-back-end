@@ -70,5 +70,6 @@ router.get("/get-most-viewed-products", ProductCtrl.getMostViewedProduct);
 router.post("/get-related-products", ProductCtrl.getRelatedProducts);
 // GET PRODUCTS OF A SPECIAL CATEGORY
 router.get("/get-products-of-type/:typeOfPro", ProductCtrl.getOneTypeProduct);
+router.get("/search-products", ProductCtrl.SearchProducts);
 
 module.exports = router;
