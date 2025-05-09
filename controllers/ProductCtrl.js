@@ -338,10 +338,11 @@ const SearchProducts = async (req, res) => {
 
     // KEYWORD SEARCH
     if (req.query.keyword) {
+      const theKeyword = req.query.keyword.replace('_'," ").toLowerCase();
       const a = allProducts.filter(
         (pro) =>
-          pro.title.includes(req.query.keyword) ||
-          pro.imageAlt.includes(req.query.keyword)
+          pro.title.includes(theKeyword) ||
+          pro.imageAlt.includes(theKeyword)
       );
       allProducts = a;
     }
@@ -370,11 +371,19 @@ const SearchProducts = async (req, res) => {
       allProducts = a;
     }
 
-    // MAX PRICE & MIN PRICE
-    if (req.query.maxP && req.query.minP) {
+    // MAX PRICE
+    if (req.query.maxP) {
       const a = allProducts.filter(
         (pro) =>
-          Number(pro.price) <= req.query.maxP &&
+          Number(pro.price) <= req.query.maxP
+      );
+      allProducts = a;
+    }
+
+    // MIN PRICE
+    if (req.query.minP) {
+      const a = allProducts.filter(
+        (pro) =>
           Number(pro.price) >= req.query.minP
       );
       allProducts = a;

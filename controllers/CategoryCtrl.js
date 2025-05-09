@@ -44,7 +44,9 @@ const newCategory = async (req, res) => {
         req.body.image.endsWith(".jpeg") ||
         req.body.image.endsWith(".webp")
       ) {
-        await Category.create(req.body);
+        const data = req.body;
+        data.slug = req.body.slug.replace(/\s+/g, "-").toLowerCase();
+        await Category.create(data);
         res.status(200).json({ msg: "دسته بندی با موفقیت ذخیره شد." });
       } else {
         res.status(422).json({ msg: "فرمت عکس اشتباه است!" });
@@ -75,6 +77,9 @@ const updateCategory = async (req, res) => {
           slug: 1,
         });
         const allProducts = await Product.find().select({ categories: 1 });
+        const data = req.body;
+        data.slug = req.body.slug.replace(/\s+/g, "-").toLowerCase();
+
         for (let i = 0; i < allProducts.length; i++) {
           for (let j = 0; j < allProducts[i].categories.length; j++) {
             if (allProducts[i].categories[j]._id == theCategory._id) {
@@ -87,7 +92,7 @@ const updateCategory = async (req, res) => {
                 {
                   _id: req.params.id,
                   title: req.body.title,
-                  slug: req.body.slug,
+                  slug: data.slug,
                 },
               ];
               const updatedProduct = { categories: updatedProducCategories };
@@ -102,7 +107,7 @@ const updateCategory = async (req, res) => {
           }
         }
 
-        await Category.findByIdAndUpdate(req.params.id, req.body, {
+        await Category.findByIdAndUpdate(req.params.id, data, {
           new: true,
         });
         res.status(200).json({ msg: "دسته بندی با موفقیت به روز رسانی شد." });

@@ -13,9 +13,9 @@ router.post(
       "imageAlt",
       "تعداد کاراکتر alt تصویر باید بیشتر از 8 کاراکتر باشد!"
     ).isLength({ min: 8 }),
-    check("title", "تعداد کاراکتر عنوان باید 5 تا 13 کاراکتر باشد!").isLength({
+    check("title", "تعداد کاراکتر عنوان باید 5 تا 30 کاراکتر باشد!").isLength({
       min: 5,
-      max: 13,
+      max: 30,
     }),
     check(
       "shortDesc",
@@ -41,9 +41,9 @@ router.post(
       "imageAlt",
       "تعداد کاراکتر alt تصویر باید بیشتر از 8 کاراکتر باشد!"
     ).isLength({ min: 8 }),
-    check("title", "تعداد کاراکتر عنوان باید 5 تا 13 کاراکتر باشد!").isLength({
+    check("title", "تعداد کاراکتر عنوان باید 5 تا 30 کاراکتر باشد!").isLength({
       min: 5,
-      max: 13,
+      max: 30,
     }),
     check(
       "shortDesc",
