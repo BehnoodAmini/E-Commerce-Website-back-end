@@ -81,8 +81,11 @@ const newProduct = async (req, res) => {
       ) {
         const theFeatures = req.body.features;
         const featuresError = theFeatures.filter((fe) => !fe.includes(":"));
+        const featuresLengthError = theFeatures.filter((fe) => fe.length>45);
         if (featuresError.length > 0) {
           res.status(422).json({ msg: "الگوی ویژگی رعایت نشده است!" });
+        } else if(featuresLengthError.length > 0) {
+          res.status(422).json({ msg: "حداکثر کاراکتر مجاز برای ویژگی‌ها 45 کاراکتر است!" });
         } else {
           const data = req.body;
           data.slug = req.body.slug.replace(/\s+/g, "-").toLowerCase();
@@ -114,8 +117,11 @@ const updateProduct = async (req, res) => {
       ) {
         const theFeatures = req.body.features;
         const featuresError = theFeatures.filter((fe) => !fe.includes(":"));
+        const featuresLengthError = theFeatures.filter((fe) => fe.length>45);
         if (featuresError.length > 0) {
           res.status(422).json({ msg: "الگوی ویژگی رعایت نشده است!" });
+        } else if(featuresLengthError.length > 0) {
+          res.status(422).json({ msg: "حداکثر کاراکتر مجاز برای ویژگی‌ها 45 کاراکتر است!" });
         } else {
           const data = req.body;
           data.slug = req.body.slug.replace(/\s+/g, "-").toLowerCase();
@@ -334,17 +340,31 @@ const SearchProducts = async (req, res) => {
         buyNumber: 1,
         categories: 1,
         features: 1,
+        shortDesc: 1,
+        tags: 1,
       });
 
     // KEYWORD SEARCH
     if (req.query.keyword) {
-      const theKeyword = req.query.keyword.replace('_'," ").toLowerCase();
+      const theKeyword = req.query.keyword;
       const a = allProducts.filter(
         (pro) =>
-          pro.title.includes(theKeyword) ||
-          pro.imageAlt.includes(theKeyword)
+          pro.title.replace(/\s+/g,"_").toLowerCase().includes(theKeyword) ||
+          pro.imageAlt.replace(/\s+/g,"_").toLowerCase().includes(theKeyword) ||
+          pro.shortDesc.replace(/\s+/g,"_").toLowerCase().includes(theKeyword)
       );
-      allProducts = a;
+      const b=[];
+      for(let i=0; i<allProducts.length; i++){
+        for(let j=0; j<allProducts[i].tags.length; j++){
+          if(allProducts[i].tags[j].includes(theKeyword)){
+            b.push(allProducts[i])
+          }
+        }
+      }
+
+      const productSummer=[...a,...b]
+      let unique = (item) => [...new Set(item)];
+      allProducts = unique(productSummer);
     }
 
     // ORDERBY price, buyNumber, pageView, date
@@ -406,11 +426,9 @@ const SearchProducts = async (req, res) => {
 
       let unique = (item) => [...new Set(item)];
       allProducts = unique(a);
-
-      allProducts = a;
     }
 
-    //THIS IS FOR PAGINATION BTNS
+    //THIS IS FOR PAGINATION BTNS & SEARCH RESULTS
     const productsNumber = allProducts.length;
     //PAGINATION
     const paginate = req.query.pgn ? req.query.pgn : 12;
@@ -441,7 +459,26 @@ const SearchProducts = async (req, res) => {
       }
     }
 
-    res.status(200).json({ allProducts, btns });
+    const outData=[];
+    for(let i=0; i<allProducts.length; i++){
+      const data=allProducts[i];
+      const obj={
+        _id:data._id,
+        title:data.title,
+        slug:data.slug,
+        image:data.image,
+        imageAlt:data.imageAlt,
+        price:data.price,
+        typeOfProduct:data.typeOfProduct,
+        features:data.features,
+        categories:data.categories,
+        buyNumber:data.buyNumber,
+        pageView:data.pageView,
+      };
+      outData.push(obj)
+    }
+
+    res.status(200).json({ allProducts:outData, btns, productsNumber });
   } catch (err) {
     console.log(err);
     res.status(400).json(err);
