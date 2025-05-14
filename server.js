@@ -54,11 +54,9 @@ app.use("/api", UserRoutes);
 const PORT = process.env.PORT;
 const DB_URL = process.env.DB_URL;
 
-//mongoose.connect(DB_URL)
 mongoose
-  .connect("mongodb://127.0.0.1:27017/")
+  .connect(DB_URL)
   .then((d) => {
-    console.log("ok");
     app.listen(PORT);
   })
   .catch((err) => console.log(err));
