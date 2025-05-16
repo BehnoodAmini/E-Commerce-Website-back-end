@@ -62,7 +62,7 @@ const registerUser = async (req, res) => {
               .toLowerCase();
             data.email = req.body.email.replace(/\s+/g, "_").toLowerCase();
             data.password = req.body.password.replace(/\s+/g, "").toLowerCase();
-            const hashedPassword = await bcrypt.hash(req.body.password, 10);
+            const hashedPassword = await bcrypt.hash(data.password, 10);
             const userActivateCode = Math.floor(
               Math.random() * 90000000 + 10000000
             );
@@ -132,7 +132,7 @@ const registerUser = async (req, res) => {
                       .json({ msg: "خطا در ثبت نام!", errorMessage: err });
                   });
               })
-              .catch((e) => {
+              .catch((err) => {
                 console.log(err);
                 res.status(400).json(err);
               });
@@ -153,6 +153,47 @@ const registerUser = async (req, res) => {
 };
 module.exports.registerUser = registerUser;
 
+// LOGIN USER
+const loginUser = async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(422).json({ msg: errors.errors[0].msg });
+    } else {
+      // CHECK EMAIL EXIST
+      const emailExist = await User.find({ email: req.body.email });
+      if (emailExist.length > 0) {
+        const theUser = emailExist[0];
+        const data = req.body;
+        data.email = req.body.email.replace(/\s+/g, "_").toLowerCase();
+        data.password = req.body.password.replace(/\s+/g, "").toLowerCase();
+        const validPassword = await bcrypt.compare(
+          data.password,
+          theUser.password
+        );
+        if (validPassword == false) {
+          res.status(422).json({ msg: "ایمیل یا رمز عبور اشتباه است!" });
+        } else {
+          // MAKING AUTH COOKIE
+          const token = jwt.sign(
+            { _id: theUser._id, username: theUser.username },
+            process.env.TOKEN_SECRET
+          );
+          res
+            .status(200)
+            .json({ msg: "با موفقیت وارد حساب کاربری شدید.", auth: token });
+        }
+      } else {
+        res.status(422).json({ msg: "لطفا ابتدا ثبت نام کنید!" });
+      }
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(400).json(err);
+  }
+};
+module.exports.loginUser = loginUser;
+
 const updateUser = async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -165,7 +206,8 @@ const updateUser = async (req, res) => {
         .replace(/\s+/g, "_")
         .toLowerCase();
       data.email = req.body.email.replace(/\s+/g, "_").toLowerCase();
-      data.password = req.body.password.replace(/\s+/g, "").toLowerCase();
+      const newPass = req.body.password.replace(/\s+/g, "").toLowerCase();
+      data.password = await bcrypt.hash(newPass, 10);
       await User.findByIdAndUpdate(req.params.id, data, {
         new: true,
       });
@@ -199,10 +241,15 @@ const miniUpdateUser = async (req, res) => {
         data.displayname = req.body.displayname
           .replace(/\s+/g, "_")
           .toLowerCase();
-        data.password = req.body.password.replace(/\s+/g, "").toLowerCase();
-        await User.findByIdAndUpdate(req.params.id, data, {
-          new: true,
-        });
+        const newPass = req.body.password.replace(/\s+/g, "").toLowerCase();
+        data.password = await bcrypt.hash(newPass, 10);
+        (data.updatedAt = new Date().toLocaleDateString("fa-IR", {
+          hour: "2-digit",
+          minute: "2-digit",
+        })),
+          await User.findByIdAndUpdate(req.params.id, data, {
+            new: true,
+          });
         res.status(200).json({ msg: "کاربر با موفقیت به روز رسانی شد." });
       }
     }
@@ -234,6 +281,17 @@ const getOneUserById = async (req, res) => {
   }
 };
 module.exports.getOneUserById = getOneUserById;
+
+const getUserDataAccount = async (req, res) => {
+  try {
+    const goalUser = await User.findById(req.user._id);
+    res.status(200).json(goalUser);
+  } catch (err) {
+    console.log(err);
+    res.status(400).json(err);
+  }
+};
+module.exports.getUserDataAccount = getUserDataAccount;
 
 const SearchUsers = async (req, res) => {
   try {

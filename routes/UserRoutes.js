@@ -4,6 +4,7 @@ const { check } = require("express-validator");
 
 const UserCtrl = require("../controllers/UserCtrl");
 const User = require("../models/User");
+const UserExist = require("../middlewares/userExist");
 
 router.get("/users", UserCtrl.getAllUsers);
 router.post(
@@ -51,15 +52,47 @@ router.post(
         }
       });
     }),
-    check("favoriteProducts", "فرمت یکی از ورودی‌های ثبت نام کاربر اشتباه است!").isArray(),
-    check("userProducts", "فرمت یکی از ورودی‌های ثبت نام کاربر اشتباه است!").isArray(),
-    check("comments", "فرمت یکی از ورودی‌های ثبت نام کاربر اشتباه است!").isArray(),
-    check("payments", "فرمت یکی از ورودی‌های ثبت نام کاربر اشتباه است!").isArray(),
+    check(
+      "favoriteProducts",
+      "فرمت یکی از ورودی‌های ثبت نام کاربر اشتباه است!"
+    ).isArray(),
+    check(
+      "userProducts",
+      "فرمت یکی از ورودی‌های ثبت نام کاربر اشتباه است!"
+    ).isArray(),
+    check(
+      "comments",
+      "فرمت یکی از ورودی‌های ثبت نام کاربر اشتباه است!"
+    ).isArray(),
+    check(
+      "payments",
+      "فرمت یکی از ورودی‌های ثبت نام کاربر اشتباه است!"
+    ).isArray(),
     check("cart", "فرمت یکی از ورودی‌های ثبت نام کاربر اشتباه است!").isArray(),
-    check("viewed", "فرمت یکی از ورودی‌های ثبت نام کاربر اشتباه است!").isBoolean(),
-    check("userIsActive", "فرمت یکی از ورودی‌های ثبت نام کاربر اشتباه است!").isBoolean(),
+    check(
+      "viewed",
+      "فرمت یکی از ورودی‌های ثبت نام کاربر اشتباه است!"
+    ).isBoolean(),
+    check(
+      "userIsActive",
+      "فرمت یکی از ورودی‌های ثبت نام کاربر اشتباه است!"
+    ).isBoolean(),
   ],
   UserCtrl.registerUser
+);
+router.post(
+  "/login-user",
+  [
+    check(
+      "password",
+      "تعداد کاراکتر رمز عبور باید از 8 تا 20 کاراکتر باشد!"
+    ).isLength({
+      min: 8,
+      max: 20,
+    }),
+    check("email", "فرمت ایمیل اشتباه است!").isEmail(),
+  ],
+  UserCtrl.loginUser
 );
 router.post(
   "/update-user/:id",
@@ -130,7 +163,12 @@ router.post(
   UserCtrl.miniUpdateUser
 );
 router.post("/delete-user/:id", UserCtrl.deleteUser);
-router.get("/get-user-by-id/:id", UserCtrl.getOneUserById);
+
+// FOR ADMIN
+router.get("/get-user/:id", UserCtrl.getOneUserById);
+// FOR USER
+router.get("/get-user-data", UserExist, UserCtrl.getUserDataAccount);
+
 router.post(
   "/search-user",
   [check("email", "فرمت ایمیل اشتباه است!").isEmail()],
