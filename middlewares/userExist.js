@@ -7,7 +7,7 @@ module.exports = function (req, res, next) {
   }
 
   if (!token) {
-    res.status(401).json({ msg: "لطفا ابتدا لاگین کنید!" });
+    res.status(401).json({ msg: "لطفا ابتدا لاگین کنید!", router: "login" });
   } else {
     try {
       const verified = jwt.verify(token, process.env.TOKEN_SECRET);

@@ -162,6 +162,8 @@ router.post(
   ],
   UserCtrl.miniUpdateUser
 );
+router.post("/update-email-user", UserExist, UserCtrl.emailSenderChanger);
+router.post("/confirm-user-email", UserExist, UserCtrl.confirmEmail);
 router.post("/delete-user/:id", UserCtrl.deleteUser);
 
 // FOR ADMIN
@@ -173,6 +175,12 @@ router.post(
   "/search-user",
   [check("email", "فرمت ایمیل اشتباه است!").isEmail()],
   UserCtrl.SearchUsers
+);
+
+router.get(
+  "/get-part-of-user-data/:slug",
+  UserExist,
+  UserCtrl.getPartOfUserData
 );
 
 module.exports = router;

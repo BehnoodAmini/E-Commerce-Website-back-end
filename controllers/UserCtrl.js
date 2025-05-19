@@ -237,20 +237,24 @@ const miniUpdateUser = async (req, res) => {
       ) {
         res.status(400).json({ msg: "خطا در اطلاعات فرستاده شده!" });
       } else {
-        const data = req.body;
-        data.displayname = req.body.displayname
-          .replace(/\s+/g, "_")
-          .toLowerCase();
-        const newPass = req.body.password.replace(/\s+/g, "").toLowerCase();
-        data.password = await bcrypt.hash(newPass, 10);
-        (data.updatedAt = new Date().toLocaleDateString("fa-IR", {
-          hour: "2-digit",
-          minute: "2-digit",
-        })),
-          await User.findByIdAndUpdate(req.params.id, data, {
-            new: true,
-          });
-        res.status(200).json({ msg: "کاربر با موفقیت به روز رسانی شد." });
+        if (req.body.password == req.body.rePassword) {
+          const data = req.body;
+          data.displayname = req.body.displayname
+            .replace(/\s+/g, "_")
+            .toLowerCase();
+          const newPass = req.body.password.replace(/\s+/g, "").toLowerCase();
+          data.password = await bcrypt.hash(newPass, 10);
+          (data.updatedAt = new Date().toLocaleDateString("fa-IR", {
+            hour: "2-digit",
+            minute: "2-digit",
+          })),
+            await User.findByIdAndUpdate(req.params.id, data, {
+              new: true,
+            });
+          res.status(200).json({ msg: "کاربر با موفقیت به روز رسانی شد." });
+        } else {
+          res.status(422).json({ msg: "تکرار رمز عبور اشتباه است!" });
+        }
       }
     }
   } catch (err) {
@@ -259,6 +263,45 @@ const miniUpdateUser = async (req, res) => {
   }
 };
 module.exports.miniUpdateUser = miniUpdateUser;
+
+const emailSenderChanger = async (req, res) => {
+  try {
+    await User.findByIdAndUpdate(req.user._id, req.body, {
+      new: true,
+    });
+    res.status(200).json({ msg: "وضعیت ارسال ایمیل تغییر کرد." });
+  } catch (err) {
+    console.log(err);
+    res.status(400).json(err);
+  }
+};
+module.exports.emailSenderChanger = emailSenderChanger;
+
+const confirmEmail = async (req, res) => {
+  try {
+    const theUser = await User.findById(req.user._id);
+    if (theUser.activateCode == req.body.activateCode) {
+      const newUser = {
+        updatedAt: new Date().toLocaleDateString("fa-IR", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        userIsActive: true,
+      };
+      await User.findByIdAndUpdate(req.user._id, newUser, {
+        new: true,
+      });
+      res.status(200).json({ msg: "حساب کاربری با موفقیت فعال شد." });
+    }
+    else {
+      res.status(401).json({ msg: "کد تایید اشتباه است." });
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(400).json(err);
+  }
+};
+module.exports.confirmEmail = confirmEmail;
 
 const deleteUser = async (req, res) => {
   try {
@@ -292,6 +335,50 @@ const getUserDataAccount = async (req, res) => {
   }
 };
 module.exports.getUserDataAccount = getUserDataAccount;
+
+const getPartOfUserData = async (req, res) => {
+  try {
+    const theSlug = req.params.slug;
+    if (theSlug == "info") {
+      const goalUser = await User.findById(req.user._id).select({
+        username: 1,
+        displayname: 1,
+        email: 1,
+        createdAt: 1,
+        updatedAt: 1,
+        emailSend: 1,
+        userIsActive: 1,
+      });
+      res.status(200).json(goalUser);
+    } else if (theSlug == "favourites") {
+      const goalUser = await User.findById(req.user._id).select({
+        favoriteProducts: 1,
+      });
+      res.status(200).json(goalUser);
+    } else if (theSlug == "purchased") {
+      const goalUser = await User.findById(req.user._id).select({
+        userProducts: 1,
+      });
+      res.status(200).json(goalUser);
+    } else if (theSlug == "comments") {
+      const goalUser = await User.findById(req.user._id).select({
+        comments: 1,
+      });
+      res.status(200).json(goalUser);
+    } else if (theSlug == "payments") {
+      const goalUser = await User.findById(req.user._id).select({
+        payments: 1,
+      });
+      res.status(200).json(goalUser);
+    } else {
+      res.status(200).json({ msg: "عدم تعیین بخش مورد نظر..." });
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(400).json(err);
+  }
+};
+module.exports.getPartOfUserData = getPartOfUserData;
 
 const SearchUsers = async (req, res) => {
   try {
