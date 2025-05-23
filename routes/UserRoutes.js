@@ -183,4 +183,6 @@ router.get(
   UserCtrl.getPartOfUserData
 );
 
+router.post("/favourite-products", UserExist, UserCtrl.favouriteProductsMan);
+
 module.exports = router;

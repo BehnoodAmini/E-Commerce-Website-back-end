@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
 
 const User = require("../models/User");
+const Product = require("../models/Product");
 
 const getAllUsers = async (req, res) => {
   try {
@@ -266,7 +267,14 @@ module.exports.miniUpdateUser = miniUpdateUser;
 
 const emailSenderChanger = async (req, res) => {
   try {
-    await User.findByIdAndUpdate(req.user._id, req.body, {
+    const newUser = {
+      updatedAt: new Date().toLocaleDateString("fa-IR", {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      emailSend: req.body.emailSend,
+    };
+    await User.findByIdAndUpdate(req.user._id, newUser, {
       new: true,
     });
     res.status(200).json({ msg: "وضعیت ارسال ایمیل تغییر کرد." });
@@ -292,8 +300,7 @@ const confirmEmail = async (req, res) => {
         new: true,
       });
       res.status(200).json({ msg: "حساب کاربری با موفقیت فعال شد." });
-    }
-    else {
+    } else {
       res.status(401).json({ msg: "کد تایید اشتباه است." });
     }
   } catch (err) {
@@ -354,7 +361,19 @@ const getPartOfUserData = async (req, res) => {
       const goalUser = await User.findById(req.user._id).select({
         favoriteProducts: 1,
       });
-      res.status(200).json(goalUser);
+      const goalProducts = await Product.find({
+        _id: { $in: goalUser.favoriteProducts },
+      }).select({
+        title: 1,
+        slug: 1,
+        image: 1,
+        price: 1,
+        shortDesc: 1,
+        typeOfProduct: 1,
+        features: 1,
+        buyNumber: 1,
+      });
+      res.status(200).json(goalProducts);
     } else if (theSlug == "purchased") {
       const goalUser = await User.findById(req.user._id).select({
         userProducts: 1,
@@ -396,3 +415,43 @@ const SearchUsers = async (req, res) => {
   }
 };
 module.exports.SearchUsers = SearchUsers;
+
+const favouriteProductsMan = async (req, res) => {
+  try {
+    const theUser = await User.findById(req.user._id);
+    if (req.body.method == "push") {
+      const newUserFavProducts = [
+        ...theUser.favoriteProducts,
+        req.body.newFavProduct,
+      ];
+      const newUser = {
+        favoriteProducts: newUserFavProducts,
+      };
+      await User.findByIdAndUpdate(req.user._id, newUser, {
+        new: true,
+      });
+      res.status(200).json({ msg: "به محصولات مورد علاقه افزوده شد!" });
+    } else if (req.body.method == "remove") {
+      const oldFavProducts = theUser.favoriteProducts;
+      for (let i = 0; i < oldFavProducts.length; i++) {
+        if (oldFavProducts[i]._id == goalFavProductId) {
+          let updatedUserFav = oldFavProducts;
+          if (i > -1) {
+            updatedUserFav.splice(i, 1);
+          }
+          const updatedFavProduct = { favoriteProducts: updatedUserFav };
+          await User.findByIdAndUpdate(req.user._id, updatedFavProduct, {
+            new: true,
+          });
+        }
+      }
+      res.status(200).json({ msg: "از محصولات مورد علاقه حذف شد!" });
+    } else {
+      res.status(401).json({ msg: "خطا در ارسال اطلاعات محصولات مورد علاقه!" });
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(400).json(err);
+  }
+};
+module.exports.favouriteProductsMan = favouriteProductsMan;
