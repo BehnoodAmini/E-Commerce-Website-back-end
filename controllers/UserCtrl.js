@@ -323,11 +323,19 @@ module.exports.deleteUser = deleteUser;
 
 const getOneUserById = async (req, res) => {
   try {
-    const goalUser = await User.findById(req.params.id).select({password:false});
+    const goalUser = await User.findById(req.params.id).select({
+      password: false,
+    });
+    // FOR ADDING FAV PRODUCTS TO GOALUSER
     const goalUserFavProduct = await Product.find({
       _id: { $in: goalUser.favoriteProducts },
     }).select({ title: 1, slug: 1 });
     goalUser.favoriteProducts = goalUserFavProduct;
+    // FOR ADDING CART PRODUCTS TO GOALUSER
+    const goalUserCartProduct = await Product.find({
+      _id: { $in: goalUser.cart },
+    }).select({ title: 1, slug: 1 });
+    goalUser.cart = goalUserCartProduct;
     res.status(200).json(goalUser);
   } catch (err) {
     console.log(err);
@@ -348,6 +356,7 @@ const getUserDataAccount = async (req, res) => {
 };
 module.exports.getUserDataAccount = getUserDataAccount;
 
+// ACCOUNT AND CART PAGE
 const getPartOfUserData = async (req, res) => {
   try {
     const theSlug = req.params.slug;
@@ -394,6 +403,23 @@ const getPartOfUserData = async (req, res) => {
         payments: 1,
       });
       res.status(200).json(goalUser);
+    } else if (theSlug == "cart") {
+      const goalUser = await User.findById(req.user._id).select({
+        cart: 1,
+      });
+      const goalProducts = await Product.find({
+        _id: { $in: goalUser.cart },
+      }).select({
+        title: 1,
+        slug: 1,
+        image: 1,
+        price: 1,
+        shortDesc: 1,
+        typeOfProduct: 1,
+        features: 1,
+        buyNumber: 1,
+      });
+      res.status(200).json(goalProducts);
     } else {
       res.status(200).json({ msg: "عدم تعیین بخش مورد نظر..." });
     }
@@ -482,3 +508,56 @@ const favouriteProductsMan = async (req, res) => {
   }
 };
 module.exports.favouriteProductsMan = favouriteProductsMan;
+
+const cartMan = async (req, res) => {
+  try {
+    const theUser = await User.findById(req.user._id);
+    if (theUser.userIsActive == true) {
+      if (req.body.method == "push") {
+        const newUserCartProducts = [...theUser.cart, req.body.newCartProduct];
+        // CHECK FOR DUPLICATION FAVOURITE PRODUCTS
+        let userHaveProduct = 0;
+        for (let i = 0; i < theUser.cart.length; i++) {
+          if (req.body.newCartProduct == theUser.cart[i]) {
+            userHaveProduct = 1;
+            break;
+          }
+        }
+        if (userHaveProduct == 0) {
+          const newUser = {
+            cart: newUserCartProducts,
+          };
+          await User.findByIdAndUpdate(req.user._id, newUser, {
+            new: true,
+          });
+          res.status(200).json({ msg: "به سبد خرید افزوده شد!" });
+        } else {
+          res.status(401).json({ msg: "قبلا به سبد خرید اضافه شده است!" });
+        }
+      } else if (req.body.method == "remove") {
+        const oldCartProducts = theUser.cart;
+        for (let i = 0; i < oldCartProducts.length; i++) {
+          if (oldCartProducts[i] == req.body.goalCartProductId) {
+            let updatedUserCart = oldCartProducts;
+            if (i > -1) {
+              updatedUserCart.splice(i, 1);
+            }
+            const updatedCartProduct = { cart: updatedUserCart };
+            await User.findByIdAndUpdate(req.user._id, updatedCartProduct, {
+              new: true,
+            });
+          }
+        }
+        res.status(200).json({ msg: "از سبد خرید حذف شد!" });
+      } else {
+        res.status(401).json({ msg: "خطا در ارسال اطلاعات محصولات سبد خرید!" });
+      }
+    } else {
+      res.status(401).json({ msg: "لطفا ابتدا ایمبل خود را تایید کنید!" });
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(400).json(err);
+  }
+};
+module.exports.cartMan = cartMan;

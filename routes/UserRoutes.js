@@ -169,13 +169,12 @@ router.post(
   [check("email", "فرمت ایمیل اشتباه است!").isEmail()],
   UserCtrl.SearchUsers
 );
-
 router.get(
   "/get-part-of-user-data/:slug",
   UserExist,
   UserCtrl.getPartOfUserData
 );
-
 router.post("/favourite-products", UserExist, UserCtrl.favouriteProductsMan);
+router.post("/cart-managment", UserExist, UserCtrl.cartMan);
 
 module.exports = router;
