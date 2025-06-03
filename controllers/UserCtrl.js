@@ -561,3 +561,30 @@ const cartMan = async (req, res) => {
   }
 };
 module.exports.cartMan = cartMan;
+
+// HEADER CART NUMBER
+const cartNumber = async (req, res) => {
+  try {
+    let token = req.cookies.auth_cookie;
+    if (!token) {
+      token = req.headers.auth_cookie;
+    }
+
+    if (!token) {
+      res.status(200).json({ number: 0 });
+    } else {
+      try {
+        const verified = jwt.verify(token, process.env.TOKEN_SECRET);
+        const goalUser = await User.findById(verified._id).select({ cart: 1 });
+        res.status(200).json({ number: goalUser.cart.length });
+      } catch (err) {
+        console.log(err);
+        res.status(200).json({ number: 0 });
+      }
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(400).json(err);
+  }
+};
+module.exports.cartNumber = cartNumber;
