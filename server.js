@@ -42,6 +42,7 @@ const sliderRoutes = require("./routes/SliderRoutes");
 const CategoryRoutes = require("./routes/CategoryRoutes");
 const ProductRoutes = require("./routes/ProductRoutes");
 const UserRoutes = require("./routes/UserRoutes");
+const PaymentRoutes = require("./routes/PaymentRoutes");
 
 //ROUTES MIDDLEWARE
 app.use("/api", midBanRoutes);
@@ -50,6 +51,7 @@ app.use("/api", sliderRoutes);
 app.use("/api", CategoryRoutes);
 app.use("/api", ProductRoutes);
 app.use("/api", UserRoutes);
+app.use("/api", PaymentRoutes);
 
 const PORT = process.env.PORT;
 const DB_URL = process.env.DB_URL;
