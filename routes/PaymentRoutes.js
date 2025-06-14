@@ -3,9 +3,11 @@ const router = express();
 const { check } = require("express-validator");
 
 const PaymentCtrl = require("../controllers/PaymentCtrl");
+const UserExist = require("../middlewares/userExist")
 
 router.get("/payments", PaymentCtrl.getAllPayments);
-
+router.post("/new-payment", UserExist, PaymentCtrl.newPayment);
+router.post("/payment-result-check", UserExist, PaymentCtrl.paymentResultCheck);
 router.post(
   "/update-payment/:id",
   [
@@ -31,7 +33,6 @@ router.post(
   PaymentCtrl.updatePayment
 );
 router.post("/delete-payment/:id", PaymentCtrl.deletePayment);
-
 // FOR ADMIN
 router.get("/get-payment/:id", PaymentCtrl.getOnePaymentById);
 

@@ -1,5 +1,4 @@
 const { validationResult } = require("express-validator");
-const nodemailer = require("nodemailer");
 
 const User = require("../models/User");
 const Product = require("../models/Product");
@@ -35,6 +34,99 @@ const getAllPayments = async (req, res) => {
   }
 };
 module.exports.getAllPayments = getAllPayments;
+
+const newPayment = async (req, res) => {
+  try {
+    const theUser = await User.findById(req.user._id);
+    if (!theUser) {
+      res.status(401).json({ msg: "کاربر یافت نشد!" });
+    } else {
+      if (req.body.amount && req.body.amount > 0) {
+        const newPaymentBody = {
+          username: theUser.username,
+          email: theUser.email,
+          resnumber: Math.floor(Math.random() * (99999 - 10000 + 1) + 10000),
+          amount: req.body.amount,
+          payed: false,
+          products: req.body.products,
+          viewed: false,
+          createdAt: new Date().toLocaleDateString("fa-IR", {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          updatedAt: new Date().toLocaleDateString("fa-IR", {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+        };
+        await Payment.create(newPaymentBody);
+        res.status(200).json("پرداخت ایجاد شد.");
+      } else {
+        res.status(401).json({ msg: "سبد خرید خالی است!" });
+      }
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(400).json(err);
+  }
+};
+module.exports.newPayment = newPayment;
+
+const paymentResultCheck = async (req, res) => {
+  try {
+    const thePayment = await Payment.findOne({ resnumber: req.body.resnumber });
+    if (!thePayment) {
+      res.status(401).json({ msg: "پرداخت یافت نشد!" });
+    } else {
+      if (req.body.payed == true) {
+        const theUser = await User.findById(req.user._id);
+        const newData = {};
+
+        // ADDING PRODUCTS TO userProducts
+        const userOldProducts = theUser.userProducts;
+        const userCart = theUser.cart;
+        const userNewProducts = [...userOldProducts, ...userCart];
+        newData.userProducts = userNewProducts;
+
+        // EMPTY CART
+        newData.cart = [];
+
+        // UPDATE USER
+        await User.findByIdAndUpdate(req.user._id, newData, { new: true });
+
+        // INCREASE buyNumber BY ONE IN PRODUCT(S)
+        for (let i = 0; i < userCart.length; i++) {
+          const theProduct = await Product.findById(userCart[i]);
+          const newProductData = {
+            buyNumber: theProduct.buyNumber + 1,
+          };
+          await Product.findByIdAndUpdate(userCart[i], newProductData, {
+            new: true,
+          });
+        }
+
+        // UPDATE PAYMENT
+        const newPaymentData = {
+          viewed: false,
+          updatedAt: new Date().toLocaleDateString("fa-IR", {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+        };
+        await Payment.findByIdAndUpdate(thePayment._id, newPaymentData, {
+          new: true,
+        });
+        res.status(200).json({ msg: "پرداخت انجام شد." });
+      } else {
+        res.status(401).json({ msg: "پرداخت انجام نشده است!" });
+      }
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(400).json(err);
+  }
+};
+module.exports.paymentResultCheck = paymentResultCheck;
 
 const updatePayment = async (req, res) => {
   try {
@@ -76,7 +168,7 @@ const getOnePaymentById = async (req, res) => {
       _id: { $in: goalPayment.products },
     }).select({ title: 1, slug: 1 });
     goalPayment.products = goalPaymentProduct;
-    
+
     res.status(200).json(goalPayment);
   } catch (err) {
     console.log(err);
@@ -84,4 +176,3 @@ const getOnePaymentById = async (req, res) => {
   }
 };
 module.exports.getOnePaymentById = getOnePaymentById;
-
