@@ -41,7 +41,7 @@ const newPayment = async (req, res) => {
     if (!theUser) {
       res.status(401).json({ msg: "کاربر یافت نشد!" });
     } else {
-      resnumber=Math.floor(Math.random() * (99999 - 10000 + 1) + 10000);// BECAUSE WE DO NOT HAVE AN AUTHORITY CODE FROM A VALID PAYMENT GATEWAY!
+      resnumber = Math.floor(Math.random() * (99999 - 10000 + 1) + 10000); // BECAUSE WE DO NOT HAVE AN AUTHORITY CODE FROM A VALID PAYMENT GATEWAY!
       if (req.body.amount && req.body.amount > 0) {
         const newPaymentBody = {
           username: theUser.username,
@@ -61,7 +61,20 @@ const newPayment = async (req, res) => {
           }),
         };
         await Payment.create(newPaymentBody);
-        res.status(200).json({msg: "پرداخت ایجاد شد.", resnumber});
+
+        const newUserData = {};
+        const thePayment = await Payment.findOne({
+          resnumber: newPaymentBody.resnumber,
+        });
+        // ADDING PAYMENT ID TO USER PAYMENTS
+        const userOldPayments = theUser.payments;
+        const ThisPayment = [thePayment._id];
+        const userNewPayments = [...userOldPayments, ...ThisPayment];
+        newUserData.payments = userNewPayments;
+        // UPDATE USER
+        await User.findByIdAndUpdate(req.user._id, newUserData, { new: true });
+
+        res.status(200).json({ msg: "پرداخت ایجاد شد.", resnumber });
       } else {
         res.status(401).json({ msg: "سبد خرید خالی است!" });
       }
@@ -92,12 +105,6 @@ const paymentResultCheck = async (req, res) => {
         // EMPTY CART
         newData.cart = [];
 
-        // ADDING PAYMENT ID TO USER PAYMENTS
-        const userOldPayments= theUser.payments;
-        const ThisPayment=[thePayment._id];
-        const userNewPayments=[...userOldPayments, ...ThisPayment];
-        newData.payments=userNewPayments;
-
         // UPDATE USER
         await User.findByIdAndUpdate(req.user._id, newData, { new: true });
 
@@ -114,6 +121,7 @@ const paymentResultCheck = async (req, res) => {
 
         // UPDATE PAYMENT
         const newPaymentData = {
+          payed: true,
           viewed: false,
           updatedAt: new Date().toLocaleDateString("fa-IR", {
             hour: "2-digit",

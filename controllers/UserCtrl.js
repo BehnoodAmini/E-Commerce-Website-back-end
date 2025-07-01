@@ -5,6 +5,7 @@ const nodemailer = require("nodemailer");
 
 const User = require("../models/User");
 const Product = require("../models/Product");
+const Payment = require("../models/Payment");
 
 const getAllUsers = async (req, res) => {
   try {
@@ -392,7 +393,16 @@ const getPartOfUserData = async (req, res) => {
       const goalUser = await User.findById(req.user._id).select({
         userProducts: 1,
       });
-      res.status(200).json(goalUser);
+      const goalProducts = await Product.find({
+        _id: { $in: goalUser.userProducts },
+      }).select({
+        title: 1,
+        slug: 1,
+        image: 1,
+        imageAlt: 1,
+        mainFile: 1,
+      });
+      res.status(200).json(goalProducts);
     } else if (theSlug == "comments") {
       const goalUser = await User.findById(req.user._id).select({
         comments: 1,
@@ -402,7 +412,41 @@ const getPartOfUserData = async (req, res) => {
       const goalUser = await User.findById(req.user._id).select({
         payments: 1,
       });
-      res.status(200).json(goalUser);
+      const goalPayments = await Payment.find({
+        _id: { $in: goalUser.payments },
+      })
+        .select({
+          amount: 1,
+          payed: 1,
+          createdAt: 1,
+          products: 1,
+          resnumber: 1,
+        })
+        .sort({ _id: -1 });
+
+      for (let i = 0; i < goalPayments.length; i++) {
+        // FINDING PRODUCTS OF EACH PAYMENT
+        const goalProducts = await Product.find({
+          _id: { $in: goalPayments[i].products },
+        }).select({
+          title: 1,
+          slug: 1,
+          image: 1,
+          imageAlt: 1,
+          price: 1,
+          typeOfProduct: 1,
+          pageView: 1,
+          buyNumber: 1,
+          categories: 1,
+          features: 1,
+          shortDesc: 1,
+          tags: 1,
+        });
+        // SETTING PRODUCTS OF EACH PAYMENT
+        goalPayments[i].products = goalProducts;
+      }
+
+      res.status(200).json(goalPayments);
     } else if (theSlug == "cart") {
       const goalUser = await User.findById(req.user._id).select({
         cart: 1,
