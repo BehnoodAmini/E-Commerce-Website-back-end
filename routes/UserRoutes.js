@@ -80,6 +80,7 @@ router.post(
   ],
   UserCtrl.registerUser
 );
+router.post("/user-reactivation-code", UserExist, UserCtrl.reActivateUserCode);
 router.post(
   "/login-user",
   [

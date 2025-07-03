@@ -53,6 +53,11 @@ const UserSchema = new mongoose.Schema({
     required: true,
     type: Number,
   },
+  activateCodeCounter: {
+    required: true,
+    type: Number,
+    default: 3,
+  },
   userIsActive: {
     required: true,
     type: Boolean,

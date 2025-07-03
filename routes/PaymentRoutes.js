@@ -18,15 +18,9 @@ router.post(
       min: 8,
       max: 20,
     }),
-    check(
-      "resnumber",
-      "تعداد کاراکتر کد پرداخت باید بیشتر از 15 کاراکتر باشد!"
-    ).isLength({
-      min: 15,
-    }),
     check("email", "فرمت ایمیل اشتباه است!").isEmail(),
-    check("amount", "فرمت ایمیل اشتباه است!").isNumeric(),
-    check("payed", "فرمت پرداخت شدن اشتباه است!").isBoolean(),
+    check("amount", "فرمت مبلغ اشتباه است!").isNumeric(),
+    check("payed", "فرمت وضعیت پرداخت اشتباه است!").isBoolean(),
     check("products", "فرمت محصولات قابل پرداخت اشتباه است!").isArray(),
     check("viewed", "فرمت چک شدن اشتباه است!").isBoolean(),
   ],
