@@ -161,42 +161,59 @@ module.exports.registerUser = registerUser;
 const reActivateUserCode = async (req, res) => {
   try {
     const userData = await User.findById(req.user._id);
-    const newData = {
-      activateCodeCounter: userData.activateCodeCounter - 1,
-    };
-    await User.findByIdAndUpdate(req.user._id, newData, { new: true });
 
-    // EMAIL TO USER
-    const MAIL_HOST = process.env.MAIL_HOST;
-    const MAIL_PORT = process.env.MAIL_PORT;
-    const MAIL_USER = process.env.MAIL_USER;
-    const MAIL_PASSWORD = process.env.MAIL_PASSWORD;
-    const MAIL_MAIN_ADDRESS = process.env.MAIL_MAIN_ADDRESS;
-    const transporter = nodemailer.createTransport({
-      host: MAIL_HOST,
-      port: MAIL_PORT,
-      tls: true,
-      auth: {
-        user: MAIL_USER,
-        pass: MAIL_PASSWORD,
-      },
-    });
-    transporter
-      .sendMail({
-        from: MAIL_MAIN_ADDRESS,
-        to: userData.email,
-        subject: "احراز هویت pdshop.ir",
-        html: `<html><head><style>strong{color: rgb(0, 121, 222);}h1{font-size: large;}</style></head><body><h1>احراز هویت pdshop.ir</h1><div>کد احراز هویت: <strong>${userData.activateCode}</strong></div></body></html>`,
-      })
-      .then((d) => {
-        res.status(200).json({ msg: "ایمیل دوباره ارسال شد." });
-      })
-      .catch((err) => {
-        console.log(err);
-        res
-          .status(400)
-          .json({ msg: "خطا در ارسال دوباره ایمیل!", errorMessage: err });
+    // CHECK IF 30 DAYS PASSED
+    const now = new Date();
+    const lastReset = userData.activateCodeCounterLastReset || new Date(0);
+    const diffInDays = (now - lastReset) / (1000 * 60 * 60 * 24);
+
+    if (diffInDays >= 30) {
+      // RESET THE COUNTER
+      userData.activateCodeCounter = 3; //DEFAULT IS 3
+      userData.activateCodeCounterLastReset = now;
+      await userData.save();
+    }
+
+    if (userData.activateCodeCounter > 0) {
+      const newData = {
+        activateCodeCounter: userData.activateCodeCounter - 1,
+      };
+      await User.findByIdAndUpdate(req.user._id, newData, { new: true });
+
+      // EMAIL TO USER
+      const MAIL_HOST = process.env.MAIL_HOST;
+      const MAIL_PORT = process.env.MAIL_PORT;
+      const MAIL_USER = process.env.MAIL_USER;
+      const MAIL_PASSWORD = process.env.MAIL_PASSWORD;
+      const MAIL_MAIN_ADDRESS = process.env.MAIL_MAIN_ADDRESS;
+      const transporter = nodemailer.createTransport({
+        host: MAIL_HOST,
+        port: MAIL_PORT,
+        tls: true,
+        auth: {
+          user: MAIL_USER,
+          pass: MAIL_PASSWORD,
+        },
       });
+      transporter
+        .sendMail({
+          from: MAIL_MAIN_ADDRESS,
+          to: userData.email,
+          subject: "احراز هویت pdshop.ir",
+          html: `<html><head><style>strong{color: rgb(0, 121, 222);}h1{font-size: large;}</style></head><body><h1>ایمیل دوباره جهت احراز هویت pdshop.ir</h1><div>کد احراز هویت: <strong>${userData.activateCode}</strong></div></body></html>`,
+        })
+        .then((d) => {
+          res.status(200).json({ msg: "ایمیل دوباره ارسال شد." });
+        })
+        .catch((err) => {
+          console.log(err);
+          res
+            .status(400)
+            .json({ msg: "خطا در ارسال دوباره ایمیل!", errorMessage: err });
+        });
+    } else {
+      res.status(401).json({ msg: "شما امکان ارسال دوباره ایمیل را ندارید!" });
+    }
   } catch (err) {
     console.log(err);
     res.status(400).json(err);
@@ -374,16 +391,31 @@ const getOneUserById = async (req, res) => {
     const goalUser = await User.findById(req.params.id).select({
       password: false,
     });
+
     // FOR ADDING FAV PRODUCTS TO GOALUSER
     const goalUserFavProduct = await Product.find({
       _id: { $in: goalUser.favoriteProducts },
     }).select({ title: 1, slug: 1 });
     goalUser.favoriteProducts = goalUserFavProduct;
+
     // FOR ADDING CART PRODUCTS TO GOALUSER
     const goalUserCartProduct = await Product.find({
       _id: { $in: goalUser.cart },
     }).select({ title: 1, slug: 1 });
     goalUser.cart = goalUserCartProduct;
+
+    // FOR ADDING PURCHASED PRODUCTS TO GOALUSER
+    const goalUserProducts = await Product.find({
+      _id: { $in: goalUser.userProducts },
+    }).select({ title: 1, slug: 1 });
+    goalUser.userProducts = goalUserProducts;
+
+    // FOR ADDING PAYMENTS TO GOALUSER
+    const goalUserPayments = await Payment.find({
+      email: goalUser.email,
+    }).select({ amount: 1, payed: 1, createdAt: 1 });
+    goalUser.payments = goalUserPayments;
+
     res.status(200).json(goalUser);
   } catch (err) {
     console.log(err);
@@ -417,6 +449,7 @@ const getPartOfUserData = async (req, res) => {
         updatedAt: 1,
         emailSend: 1,
         userIsActive: 1,
+        activateCodeCounter: 1,
       });
       res.status(200).json(goalUser);
     } else if (theSlug == "favourites") {
@@ -686,3 +719,19 @@ const cartNumber = async (req, res) => {
   }
 };
 module.exports.cartNumber = cartNumber;
+
+const uncheckPayment = async (req, res) => {
+  try {
+    const newPaymentData = {
+      viewed: false,
+    };
+    await Payment.findByIdAndUpdate(req.params.id, newPaymentData, {
+      new: true,
+    });
+    res.status(200).json({ msg: "سفارش به بخش سفارش‌های جدید افزوده شد." });
+  } catch (err) {
+    console.log(err);
+    res.status(400).json(err);
+  }
+};
+module.exports.uncheckPayment = uncheckPayment;

@@ -58,6 +58,10 @@ const UserSchema = new mongoose.Schema({
     type: Number,
     default: 3,
   },
+  activateCodeCounterLastReset: {
+    type: Date,
+    default: Date.now,
+  },
   userIsActive: {
     required: true,
     type: Boolean,
