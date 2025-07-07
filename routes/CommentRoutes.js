@@ -16,14 +16,6 @@ router.post(
     ).isLength({
       min: 3,
     }),
-    check("src_id", "آیدی مرجع اشتباه است!").isLength({
-      min: 24,
-      max: 24,
-    }),
-    check("parentId", "آیدی کامنت مرجع اشتباه است!").isLength({
-      min: 24,
-      max: 24,
-    }),
   ],
   CommentCtrl.newComment
 );
@@ -36,19 +28,12 @@ router.post(
     ).isLength({
       min: 3,
     }),
-    check("src_id", "آیدی مرجع اشتباه است!").isLength({
-      min: 24,
-      max: 24,
-    }),
-    check("parentId", "آیدی کامنت مرجع اشتباه است!").isLength({
-      min: 24,
-      max: 24,
-    }),
   ],
   CommentCtrl.updateComment
 );
 router.post("/delete-comment/:id", CommentCtrl.deleteComment);
-// FOR ADMIN
-router.get("/get-comment/:id", CommentCtrl.getOneCommentById);
+router.get("/get-comment/:id", CommentCtrl.getOneCommentById); // FOR ADMIN
+router.post("/get-model-comments", CommentCtrl.getModelComments);
+router.post("/publish-comment", CommentCtrl.publishComment);
 
 module.exports = router;

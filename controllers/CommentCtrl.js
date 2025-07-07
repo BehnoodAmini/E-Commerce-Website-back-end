@@ -38,30 +38,37 @@ module.exports.getAllComments = getAllComments;
 
 const newComment = async (req, res) => {
   try {
-    const theUser = await User.findById(req.user._id);
-    if (!theUser) {
-      res.status(401).json({ msg: "کاربر یافت نشد!" });
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(422).json({ msg: errors.errors[0].msg });
     } else {
-      if (theUser.userIsActive == false) {
-        res.status(401).json({ msg: "لطفا ابتدا ایمیل خود را تایید کنید!" });
+      const theUser = await User.findById(req.user._id);
+      if (!theUser) {
+        res.status(401).json({ msg: "کاربر یافت نشد!" });
       } else {
-        const commentData = {
-          message: req.body.message,
-          email: theUser.email,
-          displayname: theUser.displayname,
-          src_id: req.body.src_id,
-          parentId: req.body.parentId,
-          typeOfModel: req.body.typeOfModel,
-          published: false,
-          viewed: false,
-          createdAt: new Date().toLocaleDateString("fa-IR", {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-        };
+        if (theUser.userIsActive == false) {
+          res.status(401).json({ msg: "لطفا ابتدا ایمیل خود را تایید کنید!" });
+        } else {
+          const commentData = {
+            message: req.body.message,
+            email: theUser.email,
+            displayname: theUser.displayname,
+            src_id: req.body.src_id,
+            parentId: req.body.parentId,
+            typeOfModel: req.body.typeOfModel,
+            published: false,
+            viewed: false,
+            createdAt: new Date().toLocaleDateString("fa-IR", {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+          };
 
-        await Comment.create(commentData);
-        res.status(200).json({ msg: "دیدگاه شما پس از بررسی منتشر خواهد شد!" });
+          await Comment.create(commentData);
+          res
+            .status(200)
+            .json({ msg: "دیدگاه شما پس از بررسی منتشر خواهد شد!" });
+        }
       }
     }
   } catch (err) {
@@ -78,7 +85,9 @@ const updateComment = async (req, res) => {
       res.status(422).json({ msg: errors.errors[0].msg });
     } else {
       const data = req.body;
-      data.displayname = req.body.displayname.replace(/\s+/g, "_").toLowerCase();
+      data.displayname = req.body.displayname
+        .replace(/\s+/g, "_")
+        .toLowerCase();
       data.email = req.body.email.replace(/\s+/g, "_").toLowerCase();
       await Comment.findByIdAndUpdate(req.params.id, data, {
         new: true,
@@ -108,25 +117,160 @@ const getOneCommentById = async (req, res) => {
     const goalComment = await Comment.findById(req.params.id);
 
     // ADDING SOURCE PRODUCTS OR POSTS TO THE COMMENT
-    goalComment.src={};
-    if(goalComment.typeOfModel=="post"){
-      goalComment.src=await Post.findById(goalComment.src_id).select({title:1,slug:1});
+    let theSrc = {};
+    if (goalComment.typeOfModel == "post") {
+      const postSrc = await Post.findById(goalComment.src_id).select({
+        title: 1,
+        slug: 1,
+      });
+      theSrc = postSrc;
     } else {
-      goalComment.src=await Product.findById(goalComment.src_id).select({title:1,slug:1});
+      const productSrc = await Product.findById(goalComment.src_id).select({
+        title: 1,
+        slug: 1,
+      });
+      theSrc = productSrc;
     }
 
     // ADDING PARENT COMMENT
-    goalComment.parent={};
-    if(goalComment.parentId==null){
-      goalComment.parent={};
-    } else {
-      goalComment.parent=await Comment.findById(goalComment.parentId).select({message:1,email:1,displayname:1,createdAt:1,});
+    let theParentCom = {};
+    if (goalComment.parentId != "null") {
+      const thePar = await Comment.findById(goalComment.parentId).select({
+        message: 1,
+        email: 1,
+        displayname: 1,
+        createdAt: 1,
+      });
+      theParentCom = thePar;
     }
 
-    res.status(200).json(goalComment);
+    const sendingData = {
+      _id: goalComment._id,
+      message: goalComment.message,
+      email: goalComment.email,
+      displayname: goalComment.displayname,
+      src_id: goalComment.src_id,
+      parentId: goalComment.parentId,
+      typeOfModel: goalComment.typeOfModel,
+      published: goalComment.published,
+      viewed: goalComment.viewed,
+      createdAt: goalComment.createdAt,
+      src: theSrc,
+      createdAt: theParentCom,
+    };
+
+    res.status(200).json(sendingData);
   } catch (err) {
     console.log(err);
     res.status(400).json(err);
   }
 };
 module.exports.getOneCommentById = getOneCommentById;
+
+const getModelComments = async (req, res) => {
+  try {
+    const goalModelComments = await Comment.find({
+      src_id: req.body._id,
+      published: true,
+    }).sort({ _id: -1 });
+    if (req.body.typeOfModel == "post") {
+      const mainComments = goalModelComments.map(
+        (com) => com.parentId == "null"
+      );
+      const subComments = goalModelComments.map(
+        (com) => com.parentId != "null"
+      );
+      const AllComments = {
+        mainComments: mainComments,
+        subComments: subComments,
+      };
+      res.status(200).json(AllComments);
+    } else if (req.body.typeOfModel == "product") {
+      const mainComments = goalModelComments.map(
+        (com) => com.parentId == "null"
+      );
+      const subComments = goalModelComments.map(
+        (com) => com.parentId != "null"
+      );
+      const AllComments = {
+        mainComments: mainComments,
+        subComments: subComments,
+      };
+      res.status(200).json(AllComments);
+    } else {
+      res.status(401).json({ msg: "خطا در اطلاعات ارسال شده!" });
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(400).json(err);
+  }
+};
+module.exports.getModelComments = getModelComments;
+
+const publishComment = async (req, res) => {
+  try {
+    const theUser = await User.findById(req.user._id);
+    if (!theUser) {
+      res.status(401).json({ msg: "کاربر یافت نشد!" });
+    } else {
+      const theComment = await Comment.findById(req.body.goalId);
+
+      // UPDATING THE COMMENT'S PUBLISH STATUS
+      const newCommentData = {
+        published: true,
+      };
+      await Comment.findByIdAndUpdate(req.body.goalId, newCommentData, {
+        new: true,
+      });
+
+      // EMAIL TO PARENT COMMENT USER
+      if (req.body.parentId == "null") {
+        res.status(200).json({ msg: "دیدگاه شما با موفقیت منتشر شد!" });
+      } else {
+        const theParentComment = await Comment.findById(req.body.parentId);
+        if (theParentComment.email == process.env.ADMIN_EMAIL) {
+          res.status(200).json({ msg: "دیدگاه شما با موفقیت منتشر شد!" });
+        } else {
+          // EMAIL TO USER
+          const MAIL_HOST = process.env.MAIL_HOST;
+          const MAIL_PORT = process.env.MAIL_PORT;
+          const MAIL_USER = process.env.MAIL_USER;
+          const MAIL_PASSWORD = process.env.MAIL_PASSWORD;
+          const MAIL_MAIN_ADDRESS = process.env.MAIL_MAIN_ADDRESS;
+          const transporter = nodemailer.createTransport({
+            host: MAIL_HOST,
+            port: MAIL_PORT,
+            tls: true,
+            auth: {
+              user: MAIL_USER,
+              pass: MAIL_PASSWORD,
+            },
+          });
+          transporter
+            .sendMail({
+              from: MAIL_MAIN_ADDRESS,
+              to: theParentComment.email,
+              subject: "پاسخ جدید برای شما در فروشگاه pdshop.ir",
+              html: `<html><head><style>strong{color: rgb(0, 121, 222);}h1{font-size: large;}</style></head><body><h1>پاسخ جدید برای شما در فروشگاه pdshop.ir</h1><div>برای دیدگاه شما در فروشگاه فایل پاسخ جدیدی ثبت شده است.</div></body></html>`,
+            })
+            .then((d) => {
+              res.status(200).json({
+                msg: "انتشار دیدگاه و ارسال ایمیل با موفقیت انجام شد",
+              });
+            })
+            .catch((err) => {
+              console.log(err);
+              res.status(400).json({
+                msg: "خطا در ارسال ایمیل به کاربر سوال کننده!",
+                errorMessage: err,
+              });
+            });
+        }
+      }
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(400).json(err);
+  }
+};
+module.exports.publishComment = publishComment;

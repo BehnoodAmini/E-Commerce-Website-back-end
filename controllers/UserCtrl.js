@@ -199,7 +199,7 @@ const reActivateUserCode = async (req, res) => {
         .sendMail({
           from: MAIL_MAIN_ADDRESS,
           to: userData.email,
-          subject: "احراز هویت pdshop.ir",
+          subject: "ایمیل دوباره جهت احراز هویت pdshop.ir",
           html: `<html><head><style>strong{color: rgb(0, 121, 222);}h1{font-size: large;}</style></head><body><h1>ایمیل دوباره جهت احراز هویت pdshop.ir</h1><div>کد احراز هویت: <strong>${userData.activateCode}</strong></div></body></html>`,
         })
         .then((d) => {

@@ -20,7 +20,7 @@ const CommentSchema = new mongoose.Schema({
   parentId: {
     required: true,
     type: String,
-    default: null,
+    default: "null",
   },
   typeOfModel: {
     required: true,
