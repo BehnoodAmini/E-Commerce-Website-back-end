@@ -156,7 +156,7 @@ const getOneCommentById = async (req, res) => {
       viewed: goalComment.viewed,
       createdAt: goalComment.createdAt,
       src: theSrc,
-      createdAt: theParentCom,
+      parent: theParentCom,
     };
 
     res.status(200).json(sendingData);
@@ -172,34 +172,17 @@ const getModelComments = async (req, res) => {
     const goalModelComments = await Comment.find({
       src_id: req.body._id,
       published: true,
-    }).sort({ _id: -1 });
-    if (req.body.typeOfModel == "post") {
-      const mainComments = goalModelComments.map(
-        (com) => com.parentId == "null"
-      );
-      const subComments = goalModelComments.map(
-        (com) => com.parentId != "null"
-      );
-      const AllComments = {
-        mainComments: mainComments,
-        subComments: subComments,
-      };
-      res.status(200).json(AllComments);
-    } else if (req.body.typeOfModel == "product") {
-      const mainComments = goalModelComments.map(
-        (com) => com.parentId == "null"
-      );
-      const subComments = goalModelComments.map(
-        (com) => com.parentId != "null"
-      );
-      const AllComments = {
-        mainComments: mainComments,
-        subComments: subComments,
-      };
-      res.status(200).json(AllComments);
-    } else {
-      res.status(401).json({ msg: "خطا در اطلاعات ارسال شده!" });
-    }
+      parentId: "null",
+    })
+      .sort({ _id: -1 })
+      .select({
+        _id: 1,
+        createdAt: 1,
+        displayname: 1,
+        message: 1,
+        parentId: 1,
+      });
+    res.status(200).json(goalModelComments);
   } catch (err) {
     console.log(err);
     res.status(400).json(err);
@@ -207,14 +190,34 @@ const getModelComments = async (req, res) => {
 };
 module.exports.getModelComments = getModelComments;
 
+const getCommentChildrens = async (req, res) => {
+  try {
+    const goalReplyComments = await Comment.find({
+      published: true,
+      parentId: req.params.id,
+    })
+      .sort({ _id: -1 })
+      .select({
+        _id: 1,
+        createdAt: 1,
+        displayname: 1,
+        message: 1,
+        parentId: 1,
+      });
+    res.status(200).json(goalReplyComments);
+  } catch (err) {
+    console.log(err);
+    res.status(400).json(err);
+  }
+};
+module.exports.getCommentChildrens = getCommentChildrens;
+
 const publishComment = async (req, res) => {
   try {
-    const theUser = await User.findById(req.user._id);
+    const theUser = await User.find({ email: req.body.email });
     if (!theUser) {
       res.status(401).json({ msg: "کاربر یافت نشد!" });
     } else {
-      const theComment = await Comment.findById(req.body.goalId);
-
       // UPDATING THE COMMENT'S PUBLISH STATUS
       const newCommentData = {
         published: true,
