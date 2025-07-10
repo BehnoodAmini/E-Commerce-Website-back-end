@@ -34,7 +34,7 @@ router.post(
 router.post("/delete-comment/:id", CommentCtrl.deleteComment);
 router.get("/get-comment/:id", CommentCtrl.getOneCommentById); // FOR ADMIN
 router.post("/get-model-comments", CommentCtrl.getModelComments);
-router.post("/get-comment-childrens", CommentCtrl.getCommentChildrens);
+router.get("/get-comment-childrens/:id", CommentCtrl.getCommentChildrens);
 router.post("/publish-comment", CommentCtrl.publishComment);
 
 module.exports = router;
