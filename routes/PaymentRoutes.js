@@ -3,9 +3,10 @@ const router = express();
 const { check } = require("express-validator");
 
 const PaymentCtrl = require("../controllers/PaymentCtrl");
-const UserExist = require("../middlewares/userExist")
+const UserExist = require("../middlewares/userExist");
 
 router.get("/payments", PaymentCtrl.getAllPayments);
+router.get("/not-viewwed-payments", PaymentCtrl.getAllNotViewedPayments);
 router.post("/new-payment", UserExist, PaymentCtrl.newPayment);
 router.post("/payment-result-check", UserExist, PaymentCtrl.paymentResultCheck);
 router.post(

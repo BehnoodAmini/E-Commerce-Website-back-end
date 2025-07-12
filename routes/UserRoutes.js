@@ -179,5 +179,6 @@ router.post("/favourite-products", UserExist, UserCtrl.favouriteProductsMan);
 router.post("/cart-managment", UserExist, UserCtrl.cartMan);
 router.get("/cart-number", UserCtrl.cartNumber);
 router.get("/uncheck-payment/:id", UserCtrl.uncheckPayment);
+router.get("/uncheck-comment/:id", UserCtrl.uncheckComment);
 
 module.exports = router;

@@ -6,6 +6,7 @@ const CommentCtrl = require("../controllers/CommentCtrl");
 const UserExist = require("../middlewares/userExist");
 
 router.get("/comments", CommentCtrl.getAllComments);
+router.get("/not-viewed-comments", CommentCtrl.getAllNotViewedComments);
 router.post(
   "/new-comment",
   UserExist,
@@ -36,5 +37,6 @@ router.get("/get-comment/:id", CommentCtrl.getOneCommentById); // FOR ADMIN
 router.post("/get-model-comments", CommentCtrl.getModelComments);
 router.get("/get-comment-childrens/:id", CommentCtrl.getCommentChildrens);
 router.post("/publish-comment", CommentCtrl.publishComment);
+router.get("/get-model-comments-number/:id", CommentCtrl.getModelCommentsNumber);
 
 module.exports = router;

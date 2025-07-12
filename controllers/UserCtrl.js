@@ -5,7 +5,9 @@ const nodemailer = require("nodemailer");
 
 const User = require("../models/User");
 const Product = require("../models/Product");
+const Post = require("../models/Post");
 const Payment = require("../models/Payment");
+const Comment = require("../models/Comment");
 
 const getAllUsers = async (req, res) => {
   try {
@@ -416,6 +418,12 @@ const getOneUserById = async (req, res) => {
     }).select({ amount: 1, payed: 1, createdAt: 1 });
     goalUser.payments = goalUserPayments;
 
+    // FOR ADDING COMMENTS TO GOALUSER
+    const goalUserComments = await Comment.find({
+      email: goalUser.email,
+    }).select({ message: 1, typeOfModel: 1, createdAt: 1 });
+    goalUser.comments = goalUserComments;
+
     res.status(200).json(goalUser);
   } catch (err) {
     console.log(err);
@@ -491,10 +499,48 @@ const getPartOfUserData = async (req, res) => {
 
       res.status(200).json(goalProducts);
     } else if (theSlug == "comments") {
-      const goalUser = await User.findById(req.user._id).select({
-        comments: 1,
-      });
-      res.status(200).json(goalUser);
+      const goalUser = await User.findById(req.user._id);
+      const userComments = await Comment.find({ email: goalUser.email })
+        .sort({ _id: -1 })
+        .select({
+          createdAt: 1,
+          published: 1,
+          typeOfModel: 1,
+          src_id: 1,
+          message: 1,
+        });
+
+      const fullDataUserComments = [];
+      // ADDING SOURCE PRODUCTS OR POSTS TO THE COMMENT
+      for (let i = 0; i < userComments.length; i++) {
+        let theSrc = {};
+        if (userComments[i].typeOfModel == "post") {
+          const postSrc = await Post.findById(userComments[i].src_id).select({
+            title: 1,
+            slug: 1,
+          });
+          theSrc = postSrc;
+        } else {
+          const productSrc = await Product.findById(
+            userComments[i].src_id
+          ).select({
+            title: 1,
+            slug: 1,
+          });
+          theSrc = productSrc;
+        }
+        const newCommentData = {
+          createdAt: userComments[i].createdAt,
+          published: userComments[i].published,
+          typeOfModel: userComments[i].typeOfModel,
+          src_id: userComments[i].src_id,
+          message: userComments[i].message,
+          src: theSrc,
+        };
+        fullDataUserComments.push(newCommentData);
+      }
+
+      res.status(200).json(fullDataUserComments);
     } else if (theSlug == "payments") {
       const goalUser = await User.findById(req.user._id).select({
         payments: 1,
@@ -564,15 +610,13 @@ module.exports.getPartOfUserData = getPartOfUserData;
 const SearchUsers = async (req, res) => {
   try {
     const theUser = await User.find({ email: req.body.email }).select({
-      password: false,
+      _id: true,
     });
     if (theUser.length > 0) {
       res.status(200).json({ userData: theUser[0] });
     } else {
       res.status(200).json({ userData: 0 });
     }
-
-    res.status(200).json({ allPosts: outData, btns, postsNumber });
   } catch (err) {
     console.log(err);
     res.status(400).json(err);
@@ -735,3 +779,19 @@ const uncheckPayment = async (req, res) => {
   }
 };
 module.exports.uncheckPayment = uncheckPayment;
+
+const uncheckComment = async (req, res) => {
+  try {
+    const newCommentData = {
+      viewed: false,
+    };
+    await Comment.findByIdAndUpdate(req.params.id, newCommentData, {
+      new: true,
+    });
+    res.status(200).json({ msg: "دیدگاه به بخش دیدگاه‌های جدید افزوده شد." });
+  } catch (err) {
+    console.log(err);
+    res.status(400).json(err);
+  }
+};
+module.exports.uncheckComment = uncheckComment;

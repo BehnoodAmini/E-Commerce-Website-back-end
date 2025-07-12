@@ -36,6 +36,39 @@ const getAllComments = async (req, res) => {
 };
 module.exports.getAllComments = getAllComments;
 
+const getAllNotViewedComments = async (req, res) => {
+  try {
+    if (req.query.pn && req.query.pgn) {
+      const paginate = req.query.pgn;
+      const pageNumber = req.query.pn;
+      const GoalComments = await Comment.find({ viewed: false })
+        .sort({ _id: -1 })
+        .skip((pageNumber - 1) * paginate)
+        .limit(paginate)
+        .select({
+          email: 1,
+          parentId: 1,
+          published: 1,
+          viewed: 1,
+          createdAt: 1,
+        });
+      const AllCommentsNum = await (
+        await Comment.find({ viewed: false })
+      ).length;
+      res.status(200).json({ GoalComments, AllCommentsNum });
+    } else {
+      const AllComments = await Comment.find()
+        .sort({ _id: -1 })
+        .select({ resnumber: false });
+      res.status(200).json(AllComments);
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(400).json(err);
+  }
+};
+module.exports.getAllNotViewedComments = getAllNotViewedComments;
+
 const newComment = async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -277,3 +310,21 @@ const publishComment = async (req, res) => {
   }
 };
 module.exports.publishComment = publishComment;
+
+const getModelCommentsNumber = async (req, res) => {
+  try {
+    const goalModelComments = await Comment.find({
+      src_id: req.params.id,
+      published: true,
+      parentId: "null",
+    });
+    const number = {
+      number: goalModelComments.length,
+    };
+    res.status(200).json(number);
+  } catch (err) {
+    console.log(err);
+    res.status(400).json(err);
+  }
+};
+module.exports.getModelCommentsNumber = getModelCommentsNumber;
