@@ -4,7 +4,9 @@ const { check } = require("express-validator");
 
 const SliderCtrl = require("../controllers/SliderCtrl");
 
-router.get("/sliders", SliderCtrl.getAllSliders);
+const isAdmin = require("../middlewares/isAdmin");
+
+router.get("/sliders", isAdmin, SliderCtrl.getAllSliders);
 router.post(
   "/new-slider",
   [
@@ -15,6 +17,7 @@ router.post(
     check("situation", "فرمت بخش انتشار اشتباه است!").isBoolean(),
     check("sorter", "فرمت بخش سورتر اشتباه است!").isNumeric(),
   ],
+  isAdmin,
   SliderCtrl.newSlider
 );
 router.post(
@@ -27,10 +30,11 @@ router.post(
     check("situation", "فرمت بخش انتشار اشتباه است!").isBoolean(),
     check("sorter", "فرمت بخش سورتر اشتباه است!").isNumeric(),
   ],
+  isAdmin,
   SliderCtrl.updateSlider
 );
-router.post("/delete-slider/:id", SliderCtrl.deleteSlider);
-router.get("/get-slider/:id", SliderCtrl.getOneSlider);
+router.post("/delete-slider/:id", isAdmin, SliderCtrl.deleteSlider);
+router.get("/get-slider/:id", isAdmin, SliderCtrl.getOneSlider);
 router.get("/get-active-sliders", SliderCtrl.getActiveSlider);
 
 module.exports = router;

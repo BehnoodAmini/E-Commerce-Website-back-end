@@ -3,13 +3,18 @@ const router = express();
 const { check } = require("express-validator");
 
 const CommentCtrl = require("../controllers/CommentCtrl");
-const UserExist = require("../middlewares/userExist");
+const userExist = require("../middlewares/userExist");
+const isAdmin = require("../middlewares/isAdmin");
 
-router.get("/comments", CommentCtrl.getAllComments);
-router.get("/not-viewed-comments", CommentCtrl.getAllNotViewedComments);
+router.get("/comments", isAdmin, CommentCtrl.getAllComments);
+router.get(
+  "/not-viewed-comments",
+  isAdmin,
+  CommentCtrl.getAllNotViewedComments
+);
 router.post(
   "/new-comment",
-  UserExist,
+  userExist,
   [
     check(
       "message",
@@ -30,13 +35,17 @@ router.post(
       min: 3,
     }),
   ],
+  isAdmin,
   CommentCtrl.updateComment
 );
-router.post("/delete-comment/:id", CommentCtrl.deleteComment);
-router.get("/get-comment/:id", CommentCtrl.getOneCommentById); // FOR ADMIN
+router.post("/delete-comment/:id", isAdmin, CommentCtrl.deleteComment);
+router.get("/get-comment/:id", isAdmin, CommentCtrl.getOneCommentById); // FOR ADMIN
 router.post("/get-model-comments", CommentCtrl.getModelComments);
 router.get("/get-comment-childrens/:id", CommentCtrl.getCommentChildrens);
-router.post("/publish-comment", CommentCtrl.publishComment);
-router.get("/get-model-comments-number/:id", CommentCtrl.getModelCommentsNumber);
+router.post("/publish-comment", isAdmin, CommentCtrl.publishComment);
+router.get(
+  "/get-model-comments-number/:id",
+  CommentCtrl.getModelCommentsNumber
+);
 
 module.exports = router;

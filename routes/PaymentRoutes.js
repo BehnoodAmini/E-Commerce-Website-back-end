@@ -3,12 +3,18 @@ const router = express();
 const { check } = require("express-validator");
 
 const PaymentCtrl = require("../controllers/PaymentCtrl");
-const UserExist = require("../middlewares/userExist");
 
-router.get("/payments", PaymentCtrl.getAllPayments);
-router.get("/not-viewwed-payments", PaymentCtrl.getAllNotViewedPayments);
-router.post("/new-payment", UserExist, PaymentCtrl.newPayment);
-router.post("/payment-result-check", UserExist, PaymentCtrl.paymentResultCheck);
+const userExist = require("../middlewares/userExist");
+const isAdmin = require("../middlewares/isAdmin");
+
+router.get("/payments", isAdmin, PaymentCtrl.getAllPayments);
+router.get(
+  "/not-viewwed-payments",
+  isAdmin,
+  PaymentCtrl.getAllNotViewedPayments
+);
+router.post("/new-payment", userExist, PaymentCtrl.newPayment);
+router.post("/payment-result-check", userExist, PaymentCtrl.paymentResultCheck);
 router.post(
   "/update-payment/:id",
   [
@@ -25,10 +31,11 @@ router.post(
     check("products", "فرمت محصولات قابل پرداخت اشتباه است!").isArray(),
     check("viewed", "فرمت چک شدن اشتباه است!").isBoolean(),
   ],
+  isAdmin,
   PaymentCtrl.updatePayment
 );
-router.post("/delete-payment/:id", PaymentCtrl.deletePayment);
+router.post("/delete-payment/:id", isAdmin, PaymentCtrl.deletePayment);
 // FOR ADMIN
-router.get("/get-payment/:id", PaymentCtrl.getOnePaymentById);
+router.get("/get-payment/:id", isAdmin, PaymentCtrl.getOnePaymentById);
 
 module.exports = router;

@@ -5,7 +5,9 @@ const { check } = require("express-validator");
 const PostCtrl = require("../controllers/PostCtrl");
 const Post = require("../models/Post");
 
-router.get("/posts", PostCtrl.getAllPosts);
+const isAdmin = require("../middlewares/isAdmin");
+
+router.get("/posts",isAdmin, PostCtrl.getAllPosts);
 // THIS RELATED POST IS FOR ADD OR UPDATE A BLOG
 router.get("/posts-rel", PostCtrl.getRelPosts);
 router.post(
@@ -30,6 +32,7 @@ router.post(
       });
     }),
   ],
+  isAdmin,
   PostCtrl.newPost
 );
 router.post(
@@ -54,11 +57,12 @@ router.post(
       });
     }),
   ],
+  isAdmin,
   PostCtrl.updatePost
 );
-router.post("/delete-post/:id", PostCtrl.deletePost);
+router.post("/delete-post/:id",isAdmin, PostCtrl.deletePost);
 router.get("/get-post/:slug", PostCtrl.getOnePost);
-router.get("/get-post-by-id/:id", PostCtrl.getOnePostById);
+router.get("/get-post-by-id/:id",isAdmin, PostCtrl.getOnePostById);
 router.get("/get-new-posts", PostCtrl.getNewPosts);
 router.get("/get-most-viewed-posts", PostCtrl.getMostViewed);
 // THIS RELATED POSTS IS FOR SINGLE BLOG PAGE

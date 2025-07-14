@@ -4,11 +4,28 @@ const { check } = require("express-validator");
 
 const UserCtrl = require("../controllers/UserCtrl");
 const User = require("../models/User");
-const UserExist = require("../middlewares/userExist");
 
-router.get("/users", UserCtrl.getAllUsers);
+const userExist = require("../middlewares/userExist");
+const isAdmin = require("../middlewares/isAdmin");
+
+// rate limiter
+const rateLimit = require("express-rate-limit");
+const loginRegisterLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: function (req, res) {
+    res.status(429).json({
+      msg: "تعداد درخواست‌های شما بیش از حد مجاز است. لطفاً بعداً دوباره تلاش کنید.",
+    });
+  },
+});
+
+router.get("/users", isAdmin, UserCtrl.getAllUsers);
 router.post(
   "/new-user",
+  loginRegisterLimiter,
   [
     check(
       "username",
@@ -80,9 +97,10 @@ router.post(
   ],
   UserCtrl.registerUser
 );
-router.post("/user-reactivation-code", UserExist, UserCtrl.reActivateUserCode);
+router.post("/user-reactivation-code", userExist, UserCtrl.reActivateUserCode);
 router.post(
   "/login-user",
+  loginRegisterLimiter,
   [
     check(
       "password",
@@ -134,6 +152,7 @@ router.post(
       }
     ),
   ],
+  isAdmin,
   UserCtrl.updateUser
 );
 router.post(
@@ -154,31 +173,31 @@ router.post(
       max: 20,
     }),
   ],
+  userExist,
   UserCtrl.miniUpdateUser
 );
-router.post("/update-email-user", UserExist, UserCtrl.emailSenderChanger);
-router.post("/confirm-user-email", UserExist, UserCtrl.confirmEmail);
-router.post("/delete-user/:id", UserCtrl.deleteUser);
-
-// FOR ADMIN
-router.get("/get-user/:id", UserCtrl.getOneUserById);
-// FOR USER
-router.get("/get-user-data", UserExist, UserCtrl.getUserDataAccount);
+router.post("/update-email-user", userExist, UserCtrl.emailSenderChanger);
+router.post("/confirm-user-email", userExist, UserCtrl.confirmEmail);
+router.post("/delete-user/:id", isAdmin, UserCtrl.deleteUser);
+router.get("/get-user/:id", isAdmin, UserCtrl.getOneUserById);
+router.get("/get-user-data", userExist, UserCtrl.getUserDataAccount); // FOR USER
+router.get("/get-user-admin-data", isAdmin, UserCtrl.getUserAdminData); // FOR ADMIN
 
 router.post(
   "/search-user",
   [check("email", "فرمت ایمیل اشتباه است!").isEmail()],
+  isAdmin,
   UserCtrl.SearchUsers
 );
 router.get(
   "/get-part-of-user-data/:slug",
-  UserExist,
+  userExist,
   UserCtrl.getPartOfUserData
 );
-router.post("/favourite-products", UserExist, UserCtrl.favouriteProductsMan);
-router.post("/cart-managment", UserExist, UserCtrl.cartMan);
+router.post("/favourite-products", userExist, UserCtrl.favouriteProductsMan);
+router.post("/cart-managment", userExist, UserCtrl.cartMan);
 router.get("/cart-number", UserCtrl.cartNumber);
-router.get("/uncheck-payment/:id", UserCtrl.uncheckPayment);
-router.get("/uncheck-comment/:id", UserCtrl.uncheckComment);
+router.get("/uncheck-payment/:id", isAdmin, UserCtrl.uncheckPayment);
+router.get("/uncheck-comment/:id", isAdmin, UserCtrl.uncheckComment);
 
 module.exports = router;

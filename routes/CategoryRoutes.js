@@ -5,7 +5,9 @@ const { check } = require("express-validator");
 const CategoryCtrl = require("../controllers/CategoryCtrl");
 const Category = require("../models/Category");
 
-router.get("/categories", CategoryCtrl.getAllCategories);
+const isAdmin = require("../middlewares/isAdmin");
+
+router.get("/categories", isAdmin, CategoryCtrl.getAllCategories);
 router.post(
   "/new-category",
   [
@@ -32,6 +34,7 @@ router.post(
       });
     }),
   ],
+  isAdmin,
   CategoryCtrl.newCategory
 );
 router.post(
@@ -60,10 +63,11 @@ router.post(
       });
     }),
   ],
+  isAdmin,
   CategoryCtrl.updateCategory
 );
-router.post("/delete-category/:id", CategoryCtrl.deleteCategory);
-router.get("/get-category/:id", CategoryCtrl.getOneCategory);
+router.post("/delete-category/:id", isAdmin, CategoryCtrl.deleteCategory);
+router.get("/get-category/:id", isAdmin, CategoryCtrl.getOneCategory);
 router.get("/get-active-categories", CategoryCtrl.getMainPageCategories);
 router.get("/get-category/:slug", CategoryCtrl.getOneCategoryBySlug);
 

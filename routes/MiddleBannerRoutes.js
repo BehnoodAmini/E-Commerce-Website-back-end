@@ -4,7 +4,9 @@ const { check } = require("express-validator");
 
 const MiddleBannerCtrl = require("../controllers/MiddleBannerCtrl");
 
-router.get("/middle-banners", MiddleBannerCtrl.getAllMidBan);
+const isAdmin = require("../middlewares/isAdmin");
+
+router.get("/middle-banners",isAdmin, MiddleBannerCtrl.getAllMidBan);
 router.post(
   "/new-middle-banner",
   [
@@ -14,6 +16,7 @@ router.post(
     ).isLength({ min: 8 }),
     check("situation", "فرمت بخش انتشار اشتباه است!").isBoolean(),
   ],
+  isAdmin,
   MiddleBannerCtrl.newMidBan
 );
 router.post(
@@ -25,10 +28,11 @@ router.post(
     ).isLength({ min: 8 }),
     check("situation", "فرمت بخش انتشار اشتباه است!").isBoolean(),
   ],
+  isAdmin,
   MiddleBannerCtrl.updateMidBan
 );
-router.post("/delete-middle-banner/:id", MiddleBannerCtrl.deleteMidBan);
-router.get("/get-mid-ban/:id", MiddleBannerCtrl.getOneMidBan);
+router.post("/delete-middle-banner/:id", isAdmin, MiddleBannerCtrl.deleteMidBan);
+router.get("/get-mid-ban/:id",isAdmin, MiddleBannerCtrl.getOneMidBan);
 router.get("/get-active-mid-bans", MiddleBannerCtrl.getActiveBanners);
 
 module.exports = router;
