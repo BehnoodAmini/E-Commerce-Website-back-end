@@ -199,5 +199,7 @@ router.post("/cart-managment", userExist, UserCtrl.cartMan);
 router.get("/cart-number", UserCtrl.cartNumber);
 router.get("/uncheck-payment/:id", isAdmin, UserCtrl.uncheckPayment);
 router.get("/uncheck-comment/:id", isAdmin, UserCtrl.uncheckComment);
+router.get("/get-new-events", isAdmin, UserCtrl.getNewEvents); // FOR ADMIN PANEL DEAFAULT PAGE
+
 
 module.exports = router;

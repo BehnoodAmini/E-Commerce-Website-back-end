@@ -1,7 +1,7 @@
 const express = require("express");
 const app = express();
 
-app.set('trust proxy', 1);
+app.set("trust proxy", 1);
 
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
@@ -18,11 +18,15 @@ const hpp = require("hpp");
 // rate limiter
 const rateLimit = require("express-rate-limit");
 const limiter = rateLimit({
-  windowMs: 5 * 60 * 1000, 
-  max: 99,               
-  message: 'تعداد درخواست‌های شما بیش از حد مجاز است. لطفاً بعداً دوباره تلاش کنید.',
-  standardHeaders: true, 
-  legacyHeaders: false    
+  windowMs: 5 * 60 * 1000,
+  max: 500,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: function (req, res) {
+    res.status(429).json({
+      msg: "تعداد درخواست‌های شما بیش از حد مجاز است. لطفاً بعداً دوباره تلاش کنید.",
+    });
+  },
 });
 
 // security middleware

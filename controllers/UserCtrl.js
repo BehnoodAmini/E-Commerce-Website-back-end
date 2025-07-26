@@ -807,3 +807,22 @@ const uncheckComment = async (req, res) => {
   }
 };
 module.exports.uncheckComment = uncheckComment;
+
+const getNewEvents = async (req, res) => {
+  try {
+    const newUser = await User.find({ viewed: false });
+    const newPayment = await Payment.find({ viewed: false });
+    const newComment = await Comment.find({ viewed: false });
+    const sendingData = {
+      newUsersNum: newUser.length,
+      newPaymentsNum: newPayment.length,
+      newCommentsNum: newComment.length,
+    };
+
+    res.status(200).json(sendingData);
+  } catch (err) {
+    console.log(err);
+    res.status(400).json(err);
+  }
+};
+module.exports.getNewEvents = getNewEvents;

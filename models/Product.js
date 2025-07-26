@@ -48,6 +48,11 @@ const ProductSchema = new mongoose.Schema({
     required: true,
     type: String,
   },
+  keywords: {
+    required: true,
+    type: String,
+    default: "",
+  },
   tags: {
     required: true,
     type: Array,
